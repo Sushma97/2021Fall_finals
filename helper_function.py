@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 def prepare_olympic_dataset( olympic_file_name, region_file_name):
     """
@@ -13,13 +15,13 @@ def prepare_olympic_dataset( olympic_file_name, region_file_name):
     :param region_file_name:
     :return:
     """
-    dff = pd.read_csv(olympic_file_name)
-    noc = pd.read_csv(region_file_name)
-    dff["Team"] = dff["Team"].str.upper()
-    noc["region"] = noc["region"].str.upper()
-    dff_noc = dff.merge(noc, left_on="NOC", right_on="NOC", how="inner")
-    dff_noc = pd.get_dummies(dff_noc, columns=["Sex", "Medal"])
-    final_df = dff_noc.groupby(['region', 'Year', 'NOC', 'City', 'Sport'
+    olympic_df = pd.read_csv(olympic_file_name)
+    noc_df = pd.read_csv(region_file_name)
+    olympic_df["Team"] = olympic_df["Team"].str.upper()
+    noc_df["region"] = noc_df["region"].str.upper()
+    olympic_noc = olympic_df.merge(noc_df, left_on="NOC", right_on="NOC", how="inner")
+    olympic_noc = pd.get_dummies(olympic_noc, columns=["Sex", "Medal"])
+    final_df = olympic_noc.groupby(['region', 'Year', 'NOC', 'City', 'Sport'
                                 ]).agg({"Age": np.mean,
                                         "Name": 'count',
                                         'Sex_F': 'sum',
@@ -27,7 +29,7 @@ def prepare_olympic_dataset( olympic_file_name, region_file_name):
                                         'Medal_Bronze': 'sum',
                                         'Medal_Silver': 'sum',
                                         'Medal_Gold': 'sum'}).reset_index()
-    return final_df, noc
+    return final_df, noc_df
 
 def prepare_polity_dataset(polity_file_name, noc_df):
     polity = pd.read_excel(polity_file_name, )
@@ -51,6 +53,40 @@ def map_polity_region_dataset(country_dict, polity_df):
     polity_dff3 = polity_df[~(polity_df['country'] == 'ORANGE FREE STATE')]
     polity_dff3 = polity_dff3[~(polity_dff3.polity == -66)]
     return polity_dff3
+
+
+def plot_country_medal_polity(olympic_df, polity_df, country, start_year, end_year):
+    temp_df = olympic_df[(olympic_df.region == country) & ((olympic_df.Year >= start_year) &
+                                                       (olympic_df.Year <= end_year))].groupby(
+        ['Year'])['Medal_Bronze', 'Medal_Silver', 'Medal_Gold'].agg('sum').reset_index()
+    temp_politify = polity_df[polity_df['country'] == country]
+    plot_df = temp_politify.merge(temp_df, left_on="year", right_on="Year", how="left")
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(
+        go.Bar(x=plot_df["Year"], y=plot_df["Medal_Bronze"], name="Bronze"),
+        secondary_y=False,
+    )
+    fig.add_trace(
+        go.Bar(x=plot_df["Year"], y=plot_df["Medal_Silver"], name="Silver"),
+        secondary_y=False,
+    )
+    fig.add_trace(
+        go.Bar(x=plot_df["Year"], y=plot_df["Medal_Gold"], name="Gold"),
+        secondary_y=False,
+    )
+    fig.add_trace(
+        go.Line(x=plot_df["year"], y=plot_df["polity2"], name="Polity"),
+        secondary_y=False,
+    )
+    fig.update_layout(
+        title_text="Medals Won vs Polity Score",
+    )
+    # Set x-axis title
+    fig.update_xaxes(title_text="Year")
+    # Set y-axes titles
+    fig.update_yaxes(title_text="<b>Medals Won</b>", secondary_y=False)
+    fig.update_yaxes(title_text="<b>Polity Score</b>", secondary_y=True)
+    fig.show()
 
 
 
