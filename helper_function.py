@@ -66,7 +66,7 @@ def correct_team_medals_won(olympics_df, sport_dict):
             olympics_df.Medal_Bronze > 0), 'Medal_Bronze'] = olympics_df.Medal_Bronze / olympics_df.Name
     olympics_df.loc[
         (olympics_df.TeamGame == True) & (
-                    olympics_df.Medal_Gold > 0), 'Medal_Gold>'] = olympics_df.Medal_Gold / olympics_df.Name
+                    olympics_df.Medal_Gold > 0), 'Medal_Gold'] = olympics_df.Medal_Gold / olympics_df.Name
     olympics_df.loc[(olympics_df.TeamGame == True) & (
             olympics_df.Medal_Silver > 0), 'Medal_Silver'] = olympics_df.Medal_Silver / olympics_df.Name
     olympics_df[['Medal_Bronze', 'Medal_Gold', 'Medal_Silver']] = olympics_df[
