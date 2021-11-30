@@ -8,10 +8,8 @@ def prepare_olympic_dataset(olympic_file_name, region_file_name):
     """
     This function prepares the required olympics dataframe for analysis from the dataset at
     https://www.kaggle.com/heesoo37/120-years-of-olympic-history-athletes-and-results
-
     To obtain the country name from country code, the olympic dataframe is merged with noc data
     (contains country code to country name mapping).
-
     :param olympic_file_name:
     :param region_file_name:
     :return:
@@ -66,13 +64,23 @@ def correct_team_medals_won(olympics_df, sport_dict):
             olympics_df.Medal_Bronze > 0), 'Medal_Bronze'] = olympics_df.Medal_Bronze / olympics_df.Name
     olympics_df.loc[
         (olympics_df.TeamGame == True) & (
-                    olympics_df.Medal_Gold > 0), 'Medal_Gold'] = olympics_df.Medal_Gold / olympics_df.Name
+                olympics_df.Medal_Gold > 0), 'Medal_Gold'] = olympics_df.Medal_Gold / olympics_df.Name
     olympics_df.loc[(olympics_df.TeamGame == True) & (
             olympics_df.Medal_Silver > 0), 'Medal_Silver'] = olympics_df.Medal_Silver / olympics_df.Name
     olympics_df[['Medal_Bronze', 'Medal_Gold', 'Medal_Silver']] = olympics_df[
         ['Medal_Bronze', 'Medal_Gold', 'Medal_Silver']].astype('uint8')
     return olympics_df
 
+
+def get_polityshift_column(df):
+    req_df = pd.DataFrame()
+    for country in df.country.unique():
+        df_processed = df[df['country'] == country]
+        df_processed['shift'] = df_processed[df_processed['country'] == country]['polity2'] - \
+                                df_processed[df_processed['country'] == country]['polity2'].shift(-1)
+        req_df = pd.concat([req_df, df_processed], axis=0)
+        df_processed = pd.DataFrame()
+    return req_df
 
 def plot_country_medal_polity(olympic_df, polity_df, country, start_year, end_year):
     temp_df = olympic_df[(olympic_df.region == country) & ((olympic_df.Year >= start_year) &
