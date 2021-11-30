@@ -3,7 +3,8 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-def prepare_olympic_dataset( olympic_file_name, region_file_name):
+
+def prepare_olympic_dataset(olympic_file_name, region_file_name):
     """
     This function prepares the required olympics dataframe for analysis from the dataset at
     https://www.kaggle.com/heesoo37/120-years-of-olympic-history-athletes-and-results
@@ -21,15 +22,16 @@ def prepare_olympic_dataset( olympic_file_name, region_file_name):
     noc_df["region"] = noc_df["region"].str.upper()
     olympic_noc = olympic_df.merge(noc_df, left_on="NOC", right_on="NOC", how="inner")
     olympic_noc = pd.get_dummies(olympic_noc, columns=["Sex", "Medal"])
-    final_df = olympic_noc.groupby(['region', 'Year', 'NOC', 'City', 'Sport'
-                                ]).agg({"Age": np.mean,
-                                        "Name": 'count',
-                                        'Sex_F': 'sum',
-                                        'Sex_M': 'sum',
-                                        'Medal_Bronze': 'sum',
-                                        'Medal_Silver': 'sum',
-                                        'Medal_Gold': 'sum'}).reset_index()
+    final_df = olympic_noc.groupby(['region', 'Year', 'NOC', 'City', 'Sport', 'Event'
+                                    ]).agg({"Age": np.mean,
+                                            "Name": 'count',
+                                            'Sex_F': 'sum',
+                                            'Sex_M': 'sum',
+                                            'Medal_Bronze': 'sum',
+                                            'Medal_Silver': 'sum',
+                                            'Medal_Gold': 'sum'}).reset_index()
     return final_df, noc_df
+
 
 def prepare_polity_dataset(polity_file_name, noc_df):
     polity = pd.read_excel(polity_file_name, )
@@ -47,6 +49,7 @@ def prepare_polity_dataset(polity_file_name, noc_df):
     polity_dff2 = poltiy_dff2.rename(columns={"region_z": "alternate_region", "NOC_z": "alternate_noc"})
     return polity_dff2
 
+
 def map_polity_region_dataset(country_dict, polity_df):
     polity_df.loc[polity_df['alternate_noc'].isnull(), "alternate_noc"] = polity_df['country'].map(
         country_dict)
@@ -55,9 +58,25 @@ def map_polity_region_dataset(country_dict, polity_df):
     return polity_dff3
 
 
+def correct_team_medals_won(olympics_df, sport_dict):
+    olympics_df['TeamGame'] = olympics_df.apply(
+        lambda x: True if sport_dict[x.Sport] & ('Single' not in x.Event) & ('One' not in x.Event) & (
+                'Relay' in x.Event) else False, axis=1)
+    olympics_df.loc[(olympics_df.TeamGame == True) & (
+            olympics_df.Medal_Bronze > 0), 'Medal_Bronze'] = olympics_df.Medal_Bronze / olympics_df.Name
+    olympics_df.loc[
+        (olympics_df.TeamGame == True) & (
+                    olympics_df.Medal_Gold > 0), 'Medal_Gold>'] = olympics_df.Medal_Gold / olympics_df.Name
+    olympics_df.loc[(olympics_df.TeamGame == True) & (
+            olympics_df.Medal_Silver > 0), 'Medal_Silver'] = olympics_df.Medal_Silver / olympics_df.Name
+    olympics_df[['Medal_Bronze', 'Medal_Gold', 'Medal_Silver']] = olympics_df[
+        ['Medal_Bronze', 'Medal_Gold', 'Medal_Silver']].astype('uint8')
+    return olympics_df
+
+
 def plot_country_medal_polity(olympic_df, polity_df, country, start_year, end_year):
     temp_df = olympic_df[(olympic_df.region == country) & ((olympic_df.Year >= start_year) &
-                                                       (olympic_df.Year <= end_year))].groupby(
+                                                           (olympic_df.Year <= end_year))].groupby(
         ['Year'])['Medal_Bronze', 'Medal_Silver', 'Medal_Gold'].agg('sum').reset_index()
     temp_politify = polity_df[polity_df['country'] == country]
     plot_df = temp_politify.merge(temp_df, left_on="year", right_on="Year", how="left")
@@ -87,6 +106,3 @@ def plot_country_medal_polity(olympic_df, polity_df, country, start_year, end_ye
     fig.update_yaxes(title_text="<b>Medals Won</b>", secondary_y=False)
     fig.update_yaxes(title_text="<b>Polity Score</b>", secondary_y=True)
     fig.show()
-
-
-
