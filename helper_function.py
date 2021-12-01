@@ -21,7 +21,7 @@ def prepare_olympic_dataset(olympic_file_name, region_file_name):
     olympic_df["Team"] = olympic_df["Team"].str.upper()
     noc_df["region"] = noc_df["region"].str.upper()
     olympic_noc = olympic_df.merge(noc_df, left_on="NOC", right_on="NOC", how="inner")
-    olympic_noc = pd.get_dummies(olympic_noc, columns=["Sex", "Medal"])
+    olympic_noc = pd.get_dummies(olympic_noc, columns=["Sex", "Medal", "Season"])
     final_df = olympic_noc.groupby(['region', 'Year', 'NOC', 'City', 'Sport', 'Event'
                                     ]).agg({"Age": np.mean,
                                             "Name": 'count',
@@ -29,7 +29,7 @@ def prepare_olympic_dataset(olympic_file_name, region_file_name):
                                             'Sex_M': 'sum',
                                             'Medal_Bronze': 'sum',
                                             'Medal_Silver': 'sum',
-                                            'Medal_Gold': 'sum'}).reset_index()
+                                            'Medal_Gold': 'sum', 'Season_Summer':'sum', 'Season_Winter':'sum'}).reset_index()
     return final_df, noc_df
 
 
@@ -73,6 +73,14 @@ def correct_team_medals_won(olympics_df, sport_dict):
         ['Medal_Bronze', 'Medal_Gold', 'Medal_Silver']].astype('uint8')
     return olympics_df
 
+def get_polityshift_column(df):
+    req_df = pd.DataFrame()
+    for country in df.country.unique():
+        df_processed = df[df['country'] == country]
+        df_processed['shift'] = df_processed[df_processed['country'] == country]['polity2'] - df_processed[df_processed['country'] == country]['polity2'].shift(-1)
+        req_df = pd.concat([req_df, df_processed], axis=0)
+        df_processed = pd.DataFrame()
+    return req_df
 
 def plot_country_medal_polity(olympic_df, polity_df, country, start_year, end_year):
     temp_df = olympic_df[(olympic_df.region == country) & ((olympic_df.Year >= start_year) &
