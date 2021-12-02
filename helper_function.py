@@ -11,10 +11,13 @@ def prepare_olympic_dataset(olympic_file_name, region_file_name):
 
     To obtain the country name from country code, the olympic dataframe is merged with noc data
     (contains country code to country name mapping).
+    Categorical variables like sex, medal, season are split into individual columns
+    We then groupby the 'region', 'Year', 'NOC', 'City', 'Sport', 'Event'
+    and sum up the other numeric columns for further analysis
 
-    :param olympic_file_name:
-    :param region_file_name:
-    :return:
+    :param olympic_file_name: File name that contains olympics data
+    :param region_file_name: File name that contains country to country code mapping
+    :return: Final data set with data in required format for analysis
     """
     olympic_df = pd.read_csv(olympic_file_name)
     noc_df = pd.read_csv(region_file_name)
@@ -34,6 +37,12 @@ def prepare_olympic_dataset(olympic_file_name, region_file_name):
 
 
 def prepare_polity_dataset(polity_file_name, noc_df):
+    """
+
+    :param polity_file_name:
+    :param noc_df:
+    :return:
+    """
     polity = pd.read_excel(polity_file_name, )
     polity = polity[polity.year >= 1890]
     polity["country"] = polity["country"].str.upper()
@@ -100,32 +109,10 @@ def plot_country_medal_polity(olympic_df, polity_df, country, start_year, end_ye
         ['Year'])['Medal_Bronze', 'Medal_Silver', 'Medal_Gold'].agg('sum').reset_index()
     temp_politify = polity_df[polity_df['alternate_region'] == country]
     plot_df = temp_politify.merge(temp_df, left_on="year", right_on="Year", how="left")
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    fig.add_trace(
-        go.Bar(x=plot_df["Year"], y=plot_df["Medal_Bronze"], name="Bronze"),
-        secondary_y=False,
-    )
-    fig.add_trace(
-        go.Bar(x=plot_df["Year"], y=plot_df["Medal_Silver"], name="Silver"),
-        secondary_y=False,
-    )
-    fig.add_trace(
-        go.Bar(x=plot_df["Year"], y=plot_df["Medal_Gold"], name="Gold"),
-        secondary_y=False,
-    )
-    fig.add_trace(
-        go.Line(x=plot_df["year"], y=plot_df["polity2"], name="Polity"),
-        secondary_y=True,
-    )
-    fig.update_layout(
-        title_text="Medals Won vs Polity Score",
-    )
-    # Set x-axis title
-    fig.update_xaxes(title_text="Year")
-    # Set y-axes titles
-    fig.update_yaxes(title_text="<b>Medals Won</b>", secondary_y=False)
-    fig.update_yaxes(title_text="<b>Polity Score</b>", secondary_y=True)
-    fig.show()
+    input_list = [["Bronze","Year","Medal_Bronze"],["Silver","Year","Medal_Silver"],["Gold","Year","Medal_Gold"]]
+    details = ["Medals Won vs Polity Score","Year","Medals Won"]
+    plot_figure(input_list, plot_df, details)
+
 
 
 def plot_country_medal_to_participants_ratio(olympic_df, polity_df, country, start_year, end_year):
@@ -137,24 +124,9 @@ def plot_country_medal_to_participants_ratio(olympic_df, polity_df, country, sta
     temp_df['medalParticipantRatio'] = round((temp_df.TotalMedals/temp_df.Name) * 100,2)
     temp_politify = polity_df[polity_df['alternate_region'] == country]
     plot_df = temp_politify.merge(temp_df, left_on="year", right_on="Year", how="left")
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    fig.add_trace(
-        go.Bar(x=plot_df["Year"], y=plot_df["medalParticipantRatio"], name="Medal to Participant Ratio"),
-        secondary_y=False,
-    )
-    fig.add_trace(
-        go.Line(x=plot_df["year"], y=plot_df["polity2"], name="Polity"),
-        secondary_y=True
-    )
-    fig.update_layout(
-        title_text="Medal to Participant Ratio",
-    )
-    # Set x-axis title
-    fig.update_xaxes(title_text="Year")
-    # Set y-axes titles
-    fig.update_yaxes(title_text="<b>Medal to Participant Ratio</b>", secondary_y=False)
-    fig.update_yaxes(title_text="<b>Polity Score</b>", secondary_y=True)
-    fig.show()
+    input_list = [["Medal to Participant Ratio","Year","medalParticipantRatio"]]
+    details = ["Medal to Participant Ratio","Year","Medal to Participant Ratio"]
+    plot_figure(input_list, plot_df, details)
 
 
 def plot_country_age_polity(olympic_df, polity_df, country, start_year, end_year):
@@ -165,26 +137,9 @@ def plot_country_age_polity(olympic_df, polity_df, country, start_year, end_year
     temp_age_politify = polity_df[polity_df['alternate_region'] == country]
 
     plot_df = temp_age_politify.merge(temp_age_df, left_on="year", right_on="Year", how="left")
-
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-
-    fig.add_trace(
-        go.Bar(x=plot_df["Year"], y=plot_df["Age"], name="Average Age"),
-        secondary_y=False,
-    )
-    fig.add_trace(
-        go.Line(x=plot_df["year"], y=plot_df["polity2"], name="Polity"),
-        secondary_y=True,
-    )
-    fig.update_layout(
-        title_text="Average Age vs Polity Score",
-    )
-    # Set x-axis title
-    fig.update_xaxes(title_text="Year")
-    # Set y-axes titles
-    fig.update_yaxes(title_text="<b>Average Age</b>", secondary_y=False)
-    fig.update_yaxes(title_text="<b>Polity Score</b>", secondary_y=True)
-    fig.show()
+    input_list = [["Average Age", "Year", "Age"]]
+    details = ["Average Age vs Polity Score", "Year", "Average Age"]
+    plot_figure(input_list, plot_df, details)
 
 
 def plot_country_season_wise_participants(olympic_df, polity_df, country, start_year, end_year):
@@ -195,35 +150,10 @@ def plot_country_season_wise_participants(olympic_df, polity_df, country, start_
                                                                   (plot_df.Year <= end_year))].groupby(
         ['Year']).agg({"Name": 'sum', 'polity2': np.mean,
                        'Season_Summer': 'sum', 'Season_Winter': 'sum'}).reset_index()
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    # Add traces
-    fig.add_trace(
-        go.Bar(x=plot_df["Year"], y=plot_df["Season_Summer"], name="Summer Season"),
-        secondary_y=False,
-    )
-    fig.add_trace(
-        go.Bar(x=plot_df["Year"], y=plot_df["Season_Winter"], name="Winter Season"),
-        secondary_y=False,
-    )
+    input_list = [["Summer Season", "Year", "Season_Summer"], ["Winter Season", "Year", "Season_Winter"]]
+    details = ["Number of Participants vs Polity Score", "Year", "Number of Participants"]
+    plot_figure(input_list, plot_df, details)
 
-    fig.add_trace(
-        go.Line(x=plot_df["Year"], y=plot_df["polity2"], name="Polity"),
-        secondary_y=True,
-    )
-
-    # Add figure title
-    fig.update_layout(
-        title_text="Number of Participants vs Polity Score",
-    )
-
-    # Set x-axis title
-    fig.update_xaxes(title_text="Year")
-
-    # Set y-axes titles
-    fig.update_yaxes(title_text="<b>Number of Participants</b>", secondary_y=False)
-    fig.update_yaxes(title_text="<b>Polity Score</b>", secondary_y=True)
-
-    fig.show()
 
 def country_male_female_ratio(olympic_df, polity_df, country, start_year, end_year):
     temp_mf_df = olympic_df.copy(deep=True)
@@ -232,30 +162,34 @@ def country_male_female_ratio(olympic_df, polity_df, country, start_year, end_ye
     plot_df = plot_df[(plot_df.region == country) & ((plot_df.Year >= start_year) &
                                                      (plot_df.Year <= end_year))].groupby(
         ['Year']).agg({"Sex_F":'sum','Sex_M': 'sum', 'polity2': np.mean}).reset_index()
+    input_list = [["Female Participants", "Year", "Sex_F"], ["Male Participants", "Year", "Sex_M"]]
+    details = ["Participating gender vs Polity Score", "Year", "Gender of participation"]
+    plot_figure(input_list, plot_df, details)
+
+def plot_figure(input_list, plot_df, details):
     fig = make_subplots(specs=[[{"secondary_y": True}]])
-    fig.add_trace(
-        go.Bar(name="Female Participants",
-               x=plot_df["Year"],
-               y=plot_df["Sex_F"],
-               # base=france_1["Name"],
-               marker_color='#051c2c',
-               text=plot_df["Sex_F"]),
-        secondary_y=False
-    )
-    fig.add_trace(
-        go.Bar(name="Male Participants",
-               x=plot_df["Year"],
-               y=plot_df["Sex_M"],
-               marker_color='#abe5f0',
-               text=plot_df["Sex_M"]),
-        secondary_y=False
-    )
+    # color_list = ['#051c2c','#abe5f0', '#abe5f0', '#abe5f0']
+    for index,value in enumerate(input_list):
+        fig.add_trace(
+            go.Bar(name=value[0],
+                   x=plot_df[value[1]],
+                   y=plot_df[value[2]],),
+                   # marker_color=color_list[index]),
+            secondary_y=False
+        )
     fig.add_trace(
         go.Line(x=plot_df["Year"], y=plot_df["polity2"], name="Polity"),
         secondary_y=True,
     )
+    # Add figure title
     fig.update_layout(
-        autosize=False,
-        width=1900,
-        height=600, )
+        title_text=details[0],
+    )
+
+    # Set x-axis title
+    fig.update_xaxes(title_text=details[1])
+
+    # Set y-axes titles
+    fig.update_yaxes(title_text="<b>"+details[2]+"</b>", secondary_y=False)
+    fig.update_yaxes(title_text="<b>Polity Score</b>", secondary_y=True)
     fig.show()
