@@ -55,7 +55,7 @@ def prepare_polity_dataset(polity_file_name: str, noc_df: pd.DataFrame) -> pd.Da
     polity = pd.read_excel(polity_file_name, )
     polity = polity[polity.year >= 1890]  # Olympic dataset begins from 1890 while polity dataset from 1776.
     # Hence we consider data from 1890 only
-    polity["country"] = polity["country"].str.upper()
+    polity["country"] = polity["country"].str.upper().str.strip()
     # Join the Olympic and polity dataset where country name is same
     polity_dff = polity.merge(noc_df, left_on="country", right_on="region", how="left")
     # Join the Olympic and polity dataset where country code is same
@@ -87,7 +87,7 @@ def map_polity_region_dataset(country_dict: dict, polity_df: pd.DataFrame, count
     polity_df.loc[polity_df['alternate_noc'].isnull(), "alternate_noc"] = polity_df['country'].map(
         country_dict)
     polity_dff3 = polity_df[~(polity_df['country'] == 'ORANGE FREE STATE')]
-    polity_dff3 = polity_dff3[~(polity_dff3.polity == -66)]
+    polity_dff3 = polity_dff3[~(polity_dff3.polity2 == -66)]
     polity_dff3.loc[polity_dff3['alternate_region'].isnull(), "alternate_region"] = polity_dff3['alternate_noc'].map(
         country_mapper)
     return polity_dff3
@@ -146,15 +146,34 @@ def plot_country_medal_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     :param end_year: The end year for the plot
     :return:
     """
-    temp_df = olympic_df[(olympic_df.region == country) & ((olympic_df.Year >= start_year) &
-                                                           (olympic_df.Year <= end_year))].groupby(
-        ['Year'])['Medal_Bronze', 'Medal_Silver', 'Medal_Gold'].agg('sum').reset_index()
-    temp_politify = polity_df[polity_df['alternate_region'] == country]
-    plot_df = temp_politify.merge(temp_df, left_on="year", right_on="Year", how="left")
+    agg_dict = {"Medal_Bronze": 'sum', 'Medal_Silver': 'sum', 'Medal_Gold': 'sum', 'polity2': np.mean}
+    plot_df = modify_data_for_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict)
     input_list = [["Bronze", "Year", "Medal_Bronze"], ["Silver", "Year", "Medal_Silver"],
                   ["Gold", "Year", "Medal_Gold"]]
     details = ["Medals Won vs Polity Score", "Year", "Medals Won"]
     plot_figure(input_list, plot_df, details)
+
+
+def modify_data_for_plot(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, country: str,
+                              start_year: int, end_year: int, agg_dict: dict) -> pd.DataFrame:
+    """
+    This function prepares the model to be plotted based on the aggregations mentioned in agg_dict
+    :param olympic_df: Olympics dataset
+    :param polity_df: Political dataset
+    :param country: Country for which the results to be plotted
+    :param start_year: The start year for the plot
+    :param end_year: The end year for the plot
+    :return:
+    """
+    temp_df = olympic_df.copy(deep=True)
+    temp_politify = polity_df[polity_df['alternate_region'] == country]
+    plot_df = temp_politify.merge(temp_df, left_on="year", right_on="Year", how="left")
+    plot_df = plot_df[(plot_df.region == country) & ((plot_df.Year >= start_year) &
+                                                     (plot_df.Year <= end_year))].groupby(
+        ['Year']).agg(agg_dict) \
+        .reset_index()
+    return plot_df
+
 
 
 def plot_country_medal_to_participants_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, country: str,
@@ -171,14 +190,11 @@ def plot_country_medal_to_participants_ratio(olympic_df: pd.DataFrame, polity_df
     :param end_year: The end year for the plot
     :return:
     """
+    agg_dict = {"TotalMedals": 'sum', "Name": 'sum','polity2': np.mean}
     temp_df = olympic_df.copy(deep=True)
     temp_df['TotalMedals'] = olympic_df.Medal_Bronze + olympic_df.Medal_Silver + olympic_df.Medal_Gold
-    temp_df = temp_df[(temp_df.region == country) & ((temp_df.Year >= start_year) &
-                                                           (temp_df.Year <= end_year))].groupby(
-        ['Year'])['TotalMedals', 'Name'].agg('sum').reset_index()
-    temp_df['medalParticipantRatio'] = round((temp_df.TotalMedals/temp_df.Name) * 100, 2)
-    temp_politify = polity_df[polity_df['alternate_region'] == country]
-    plot_df = temp_politify.merge(temp_df, left_on="year", right_on="Year", how="left")
+    plot_df = modify_data_for_plot(temp_df, polity_df, country, start_year, end_year, agg_dict)
+    plot_df['medalParticipantRatio'] = round((plot_df.TotalMedals / plot_df.Name) * 100, 2)
     input_list = [["Medal to Participant Ratio", "Year", "medalParticipantRatio"]]
     details = ["Medal to Participant Ratio", "Year", "Medal to Participant Ratio"]
     plot_figure(input_list, plot_df, details)
@@ -199,13 +215,8 @@ def plot_country_age_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, c
     :param end_year: The end year for the plot
     :return:
     """
-    temp_age_df = olympic_df[(olympic_df.region == country) & ((olympic_df.Year >= start_year) &
-                                                               (olympic_df.Year <= end_year))].groupby(
-        ['Year'])['Age'].agg(np.mean).reset_index()
-
-    temp_age_politify = polity_df[polity_df['alternate_region'] == country]
-
-    plot_df = temp_age_politify.merge(temp_age_df, left_on="year", right_on="Year", how="left")
+    agg_dict = {"Age": 'sum', 'polity2': np.mean}
+    plot_df = modify_data_for_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict)
     input_list = [["Average Age", "Year", "Age"]]
     details = ["Average Age vs Polity Score", "Year", "Average Age"]
     plot_figure(input_list, plot_df, details)
@@ -226,13 +237,9 @@ def plot_country_season_wise_participants(olympic_df: pd.DataFrame, polity_df: p
     :param end_year: The end year for the plot
     :return:
     """
-    temp_season_df = olympic_df.copy(deep=True)
-    temp_season_politify = polity_df[polity_df['alternate_region'] == country]
-    plot_df = temp_season_politify.merge(temp_season_df, left_on="year", right_on="Year", how="left")
-    plot_df = plot_df[(plot_df.region == country) & ((plot_df.Year >= start_year) &
-                                                                  (plot_df.Year <= end_year))].groupby(
-        ['Year']).agg({"Name": 'sum', 'polity2': np.mean,
-                       'Season_Summer': 'sum', 'Season_Winter': 'sum'}).reset_index()
+    agg_dict = {"Name": 'sum', 'polity2': np.mean,
+                       'Season_Summer': 'sum', 'Season_Winter': 'sum'}
+    plot_df = modify_data_for_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict)
     input_list = [["Summer Season", "Year", "Season_Summer"], ["Winter Season", "Year", "Season_Winter"]]
     details = ["Number of Participants vs Polity Score", "Year", "Number of Participants"]
     plot_figure(input_list, plot_df, details)
@@ -253,12 +260,8 @@ def country_male_female_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     :param end_year: The end year for the plot
     :return:
     """
-    temp_mf_df = olympic_df.copy(deep=True)
-    temp_mf_politify = polity_df[polity_df['alternate_region'] == country]
-    plot_df = temp_mf_politify.merge(temp_mf_df, left_on="year", right_on="Year", how="left")
-    plot_df = plot_df[(plot_df.region == country) & ((plot_df.Year >= start_year) &
-                                                     (plot_df.Year <= end_year))].groupby(
-        ['Year']).agg({"Sex_F": 'sum', 'Sex_M': 'sum', 'polity2': np.mean}).reset_index()
+    agg_dict = {"Sex_F": 'sum', 'Sex_M': 'sum', 'polity2': np.mean}
+    plot_df = modify_data_for_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict)
     input_list = [["Female Participants", "Year", "Sex_F"], ["Male Participants", "Year", "Sex_M"]]
     details = ["Participating gender vs Polity Score", "Year", "Gender of participation"]
     plot_figure(input_list, plot_df, details)
@@ -275,27 +278,30 @@ def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list):
     """
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     # color_list = ['#051c2c','#abe5f0', '#abe5f0', '#abe5f0']
-    for index, value in enumerate(input_list):
+    try:
+        for index, value in enumerate(input_list):
+            fig.add_trace(
+                go.Bar(name=value[0],
+                       x=plot_df[value[1]],
+                       y=plot_df[value[2]]),
+                       # marker_color=color_list[index]),
+                secondary_y=False
+            )
         fig.add_trace(
-            go.Bar(name=value[0],
-                   x=plot_df[value[1]],
-                   y=plot_df[value[2]],),
-                   # marker_color=color_list[index]),
-            secondary_y=False
+            go.Line(x=plot_df["Year"], y=plot_df["polity2"], name="Polity", marker_color='#051c2c'),
+            secondary_y=True
         )
-    fig.add_trace(
-        go.Line(x=plot_df["Year"], y=plot_df["polity2"], name="Polity"),
-        secondary_y=True,
-    )
-    # Add figure title
-    fig.update_layout(
-        title_text=details[0],
-    )
+        # Add figure title
+        fig.update_layout(
+            title_text=details[0]
+        )
 
-    # Set x-axis title
-    fig.update_xaxes(title_text=details[1])
+        # Set x-axis title
+        fig.update_xaxes(title_text=details[1])
 
-    # Set y-axes titles
-    fig.update_yaxes(title_text="<b>"+details[2]+"</b>", secondary_y=False)
-    fig.update_yaxes(title_text="<b>Polity Score</b>", secondary_y=True)
-    fig.show()
+        # Set y-axes titles
+        fig.update_yaxes(title_text="<b>"+details[2]+"</b>", secondary_y=False)
+        fig.update_yaxes(title_text="<b>Polity Score</b>", secondary_y=True)
+        fig.show()
+    except Exception:
+        print("There was an error")
