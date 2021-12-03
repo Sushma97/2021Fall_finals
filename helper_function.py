@@ -74,6 +74,19 @@ def prepare_polity_dataset(polity_file_name: str, noc_df: pd.DataFrame) -> pd.Da
     polity_dff2 = poltiy_dff2.rename(columns={"region_z": "alternate_region", "NOC_z": "alternate_noc"})
     return polity_dff2
 
+def handle_countries_that_split(countries: dict, olympic_df: pd.DataFrame, noc_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    This function corrects the olympic dataset for countries that have split up during the war
+    :param countries: Dictionary of countries that have split up with key as the country code and value as the
+    country name
+    :param olympic_df: Olympic dataset
+    :param noc_df: Country code dataset
+    :return: Corrected olympic dataset
+    """
+    for key, value in countries.items():
+        olympic_df.loc[olympic_df["NOC"] == key, "region"] = value
+        noc_df.loc[noc_df["NOC"] == key, "region"] = value
+    return olympic_df
 
 def map_polity_region_dataset(country_dict: dict, polity_df: pd.DataFrame, country_mapper: dict) -> pd.DataFrame:
     """
@@ -109,9 +122,6 @@ def correct_team_medals_won(olympics_df: pd.DataFrame, sport_dict: dict) -> pd.D
                 'Relay' in x.Event)) else False, axis=1)
     olympics_df.loc[((olympics_df.TeamGame == True) & (
             olympics_df.Medal_Bronze > 0)), "Medal_Bronze"] = olympics_df.Medal_Bronze / olympics_df.Name
-    olympics_df['condition_check'] = (olympics_df.TeamGame == True) & (
-            olympics_df.Medal_Bronze > 0)
-    olympics_df['medal_division'] = olympics_df.Medal_Bronze / olympics_df.Name
     olympics_df.loc[
         (olympics_df.TeamGame == True) & (
                 olympics_df.Medal_Gold > 0), 'Medal_Gold'] = olympics_df.Medal_Gold / olympics_df.Name
@@ -182,21 +192,6 @@ def modify_data_for_plot(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, coun
         .reset_index()
 
     return plot_df
-
-def handle_countries_that_split(countries: dict, olympic_df: pd.DataFrame, noc_df:pd.DataFrame) -> pd.DataFrame:
-    """
-    This function corrects the olympic dataset for countries that have split up during the war
-    :param countries: Dictionary of countries that have split up with key as the country code and value as the
-    country name
-    :param olympic_df: Olympic dataset
-    :param noc_df: Country code dataset
-    :return: Corrected olympic dataset
-    """
-    for key, value in countries.items():
-        olympic_df.loc[olympic_df["NOC"] == key, "region"] = value
-        noc_df.loc[noc_df["NOC"] == key, "region"] = value
-    return olympic_df
-
 
 
 def plot_country_medal_to_participants_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, country: str,
