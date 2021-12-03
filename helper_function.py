@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import warnings
+warnings.filterwarnings('ignore')
 
 
 def prepare_olympic_dataset(olympic_file_name: str, region_file_name: str) -> tuple:
@@ -103,14 +105,17 @@ def correct_team_medals_won(olympics_df: pd.DataFrame, sport_dict: dict) -> pd.D
     :return: Corrected Olympic dataset
     """
     olympics_df['TeamGame'] = olympics_df.apply(
-        lambda x: True if sport_dict[x.Sport] & ('Single' not in x.Event) & ('One' not in x.Event) & (
-                'Relay' in x.Event) else False, axis=1)
-    olympics_df.loc[(olympics_df.TeamGame is True) & (
-            olympics_df.Medal_Bronze > 0), 'Medal_Bronze'] = olympics_df.Medal_Bronze / olympics_df.Name
+        lambda x: True if ((sport_dict[x.Sport]) & ('Single' not in x.Event) & ('One' not in x.Event) | (
+                'Relay' in x.Event)) else False, axis=1)
+    olympics_df.loc[((olympics_df.TeamGame == True) & (
+            olympics_df.Medal_Bronze > 0)), "Medal_Bronze"] = olympics_df.Medal_Bronze / olympics_df.Name
+    olympics_df['condition_check'] = (olympics_df.TeamGame == True) & (
+            olympics_df.Medal_Bronze > 0)
+    olympics_df['medal_division'] = olympics_df.Medal_Bronze / olympics_df.Name
     olympics_df.loc[
-        (olympics_df.TeamGame is True) & (
+        (olympics_df.TeamGame == True) & (
                 olympics_df.Medal_Gold > 0), 'Medal_Gold'] = olympics_df.Medal_Gold / olympics_df.Name
-    olympics_df.loc[(olympics_df.TeamGame is True) & (
+    olympics_df.loc[(olympics_df.TeamGame == True) & (
             olympics_df.Medal_Silver > 0), 'Medal_Silver'] = olympics_df.Medal_Silver / olympics_df.Name
     olympics_df[['Medal_Bronze', 'Medal_Gold', 'Medal_Silver']] = olympics_df[
         ['Medal_Bronze', 'Medal_Gold', 'Medal_Silver']].astype('uint8')
