@@ -1,4 +1,4 @@
-# Analysis of Olympic Performance of Countries based on Government Type and Change in Government Throughout the Years
+# Analysis of Olympic Performance for Countries based on Government Type and Change in Government Throughout the Years
 
 <p align="center">
      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Olympic_rings_without_rims.svg/2880px-Olympic_rings_without_rims.svg.png" width="500" height="300">
