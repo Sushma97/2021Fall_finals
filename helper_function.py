@@ -163,8 +163,11 @@ def modify_data_for_plot(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, coun
     :param country: Country for which the results to be plotted
     :param start_year: The start year for the plot
     :param end_year: The end year for the plot
-    :return:
+    :return: The dataset with values to be plotted
     """
+    if country not in olympic_df.region.unique():
+        print("The given string country does not exist in the list")
+        raise ValueError
     temp_df = olympic_df.copy(deep=True)
     temp_politify = polity_df[polity_df['alternate_region'] == country]
     plot_df = temp_politify.merge(temp_df, left_on="year", right_on="Year", how="left")
@@ -172,7 +175,22 @@ def modify_data_for_plot(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, coun
                                                      (plot_df.Year <= end_year))].groupby(
         ['Year']).agg(agg_dict) \
         .reset_index()
+
     return plot_df
+
+def handle_countries_that_split(countries: dict, olympic_df: pd.DataFrame, noc_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    This function corrects the olympic dataset for countries that have split up during the war
+    :param countries: Dictionary of countries that have split up with key as the country code and value as the
+    country name
+    :param olympic_df: Olympic dataset
+    :param noc_df: Country code dataset
+    :return: Corrected olympic dataset
+    """
+    for key, value in countries.items():
+        olympic_df.loc[olympic_df["NOC"] == key, "region"] = value
+        noc_df.loc[noc_df["NOC"] == key, "region"] = value
+    return olympic_df
 
 
 
@@ -215,7 +233,7 @@ def plot_country_age_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, c
     :param end_year: The end year for the plot
     :return:
     """
-    agg_dict = {"Age": 'sum', 'polity2': np.mean}
+    agg_dict = {"Age": 'mean', 'polity2': np.mean}
     plot_df = modify_data_for_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict)
     input_list = [["Average Age", "Year", "Age"]]
     details = ["Average Age vs Polity Score", "Year", "Average Age"]
@@ -304,4 +322,4 @@ def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list):
         fig.update_yaxes(title_text="<b>Polity Score</b>", secondary_y=True)
         fig.show()
     except Exception:
-        print("There was an error")
+        print("There was an error in plotting graph")
