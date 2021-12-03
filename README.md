@@ -1,8 +1,9 @@
 # Analysis of Olympic Performance of Countries based on Government Type and Change in Government Throughout the Years
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Olympic_rings_without_rims.svg/2880px-Olympic_rings_without_rims.svg.png" width="450" height="300">
-
-<img src="https://assets.telegraphindia.com/telegraph/bb5aaa2f-4a8a-4ae9-81c3-24816f1ea88c.jpg" width="450" height="250">
+<p align="center">
+     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Olympic_rings_without_rims.svg/2880px-Olympic_rings_without_rims.svg.png" width="500" height="300">
+     <img src="https://assets.telegraphindia.com/telegraph/bb5aaa2f-4a8a-4ae9-81c3-24816f1ea88c.jpg" width="500" height="250">
+</p>
 
 The Olympics is a global sporting event with more than 200 participants. These games are held every 4 years where countries showcase their athletic might. 
 
