@@ -52,7 +52,7 @@ We would measure a country's success in the Olympics based on the following metr
 
 #### KOREA:
 
-In year 1945 Korea split into North and South Korea. During year 1960 the April revolution caused president Syngman Rhee to resign which is why the polity score might have dipped. Since year 1972 the South Korea polity score increased which showed increase in performance over coming years as democracy while North Korea continue to grow as an autocracy with less performance in athletics.Because of increase in low income to middle income the participation ratio was also higher in South Korea compared to North Korea. The Male participation was foundd to be more in South Korea while Female participation showed more numbers in North Korea compared to male.
+In 1945, Korea split into North Korea (Autocratic) and South Korea (Democratic). During 1960, the April Revolution caused president Syngman Rhee to resign which is why the polity score might have dipped. Since 1972, South Korea's polity score increased, as it became more and more democratic. This might be a cause for its increase in performance over the next few years. While North Korea continued to grow as an autocracy, its performance in Olympics decreased. 1960 onwards, South Korea moved from a low income to middle income country which might have caused an increase in the participation ratio when compared to North Korea. The Male participation was found to be more in South Korea while female participation vs male participation was higher in North Korea.
 
 ![newplot](https://user-images.githubusercontent.com/41410488/144549036-59e3afce-eee4-40ca-a462-711b226d9a7a.png)
 ![newplot (1)](https://user-images.githubusercontent.com/41410488/144549179-121b3d78-2498-4a00-bb5d-503c124cd345.png)
