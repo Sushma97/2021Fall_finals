@@ -24,9 +24,46 @@ def prepare_olympic_dataset(olympic_file_name: str, region_file_name: str) -> tu
     :param olympic_file_name: File name that contains olympics data
     :param region_file_name: File name that contains country to country code mapping
     :return: Final data set with data in required format for analysis and the country code dataset
+
+    >>> prepare_olympic_dataset("athlete_events.csv", "noc_regions.csv")
+    ... # doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
+    (             region  Year  NOC  ... Medal_Gold Season_Summer Season_Winter
+    0       AFGHANISTAN  1936  AFG  ...          0           1.0             0
+    1       AFGHANISTAN  1936  AFG  ...          0           1.0             0
+    2       AFGHANISTAN  1936  AFG  ...          0           1.0             0
+    3       AFGHANISTAN  1936  AFG  ...          0          13.0             0
+    4       AFGHANISTAN  1948  AFG  ...          0          11.0             0
+    ...             ...   ...  ...  ...        ...           ...           ...
+    114145     ZIMBABWE  2016  ZIM  ...          0           1.0             0
+    114146     ZIMBABWE  2016  ZIM  ...          0           1.0             0
+    114147     ZIMBABWE  2016  ZIM  ...          0           1.0             0
+    114148     ZIMBABWE  2016  ZIM  ...          0           1.0             0
+    114149     ZIMBABWE  2016  ZIM  ...          0           1.0             0
+    <BLANKLINE>
+    [114150 rows x 15 columns],      NOC       region                 notes
+    0    AFG  AFGHANISTAN                   NaN
+    1    AHO      CURACAO  Netherlands Antilles
+    2    ALB      ALBANIA                   NaN
+    3    ALG      ALGERIA                   NaN
+    4    AND      ANDORRA                   NaN
+    ..   ...          ...                   ...
+    225  YEM        YEMEN                   NaN
+    226  YMD        YEMEN           South Yemen
+    227  YUG       SERBIA            Yugoslavia
+    228  ZAM       ZAMBIA                   NaN
+    229  ZIM     ZIMBABWE                   NaN
+    <BLANKLINE>
+    [230 rows x 3 columns])
+
+    >>> prepare_olympic_dataset("athlete.csv", "noc_regions.csv")
+    File not found. Please enter the correct file name
     """
-    olympic_df = pd.read_csv(olympic_file_name)
-    noc_df = pd.read_csv(region_file_name)
+    try:
+        olympic_df = pd.read_csv(olympic_file_name)
+        noc_df = pd.read_csv(region_file_name)
+    except FileNotFoundError:
+        print("File not found. Please enter the correct file name")
+        return
     olympic_df["Team"] = olympic_df["Team"].str.upper()
     noc_df["region"] = noc_df["region"].str.upper()
     olympic_noc = olympic_df.merge(noc_df, left_on="NOC", right_on="NOC", how="inner")
@@ -53,8 +90,33 @@ def prepare_polity_dataset(polity_file_name: str, noc_df: pd.DataFrame) -> pd.Da
     :param polity_file_name: File name of the polity dataset
     :param noc_df: File name of the country code dataset
     :return: Final political dataset for further analysis
+
+    >>> noc_df = pd.read_csv("noc_regions.csv")
+    >>> prepare_polity_dataset("p5v2018.xls", noc_df)
+    ... # doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
+              scode      country  year  ...  durable  alternate_region alternate_noc
+    0       AFG  AFGHANISTAN  1890  ...      NaN       Afghanistan           AFG
+    1       AFG  AFGHANISTAN  1891  ...      NaN       Afghanistan           AFG
+    2       AFG  AFGHANISTAN  1892  ...      NaN       Afghanistan           AFG
+    3       AFG  AFGHANISTAN  1893  ...      NaN       Afghanistan           AFG
+    4       AFG  AFGHANISTAN  1894  ...      NaN       Afghanistan           AFG
+    ...     ...          ...   ...  ...      ...               ...           ...
+    13413   ZIM     ZIMBABWE  2014  ...        1          Zimbabwe           ZIM
+    13414   ZIM     ZIMBABWE  2015  ...        2          Zimbabwe           ZIM
+    13415   ZIM     ZIMBABWE  2016  ...        3          Zimbabwe           ZIM
+    13416   ZIM     ZIMBABWE  2017  ...        4          Zimbabwe           ZIM
+    13417   ZIM     ZIMBABWE  2018  ...        5          Zimbabwe           ZIM
+    <BLANKLINE>
+    [13418 rows x 8 columns]
+
+    >>> prepare_polity_dataset("p5v2013.xls", noc_df)
+    File not found. Please enter the correct file name
     """
-    polity = pd.read_excel(polity_file_name, )
+    try:
+        polity = pd.read_excel(polity_file_name, )
+    except FileNotFoundError:
+        print("File not found. Please enter the correct file name")
+        return
     polity = polity[polity.year >= 1890]  # Olympic dataset begins from 1890 while polity dataset from 1776.
     # Hence we consider data from 1890 only
     polity["country"] = polity["country"].str.upper().str.strip()
@@ -82,6 +144,26 @@ def handle_countries_that_split(countries: dict, olympic_df: pd.DataFrame, noc_d
     :param olympic_df: Olympic dataset
     :param noc_df: Country code dataset
     :return: Corrected olympic dataset
+
+    >>> olympic_df = pd.read_csv("athlete_events.csv")
+    >>> countries = {"GDR":"GERMANY EAST"}
+    >>> noc_df = pd.read_csv("noc_regions.csv")
+    >>> handle_countries_that_split(countries, olympic_df, noc_df)
+    ... # doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
+                    ID                      Name  ... Medal  region
+    0            1                 A Dijiang  ...   NaN     NaN
+    1            2                  A Lamusi  ...   NaN     NaN
+    2            3       Gunnar Nielsen Aaby  ...   NaN     NaN
+    3            4      Edgar Lindenau Aabye  ...  Gold     NaN
+    4            5  Christine Jacoba Aaftink  ...   NaN     NaN
+    ...        ...                       ...  ...   ...     ...
+    271111  135569                Andrzej ya  ...   NaN     NaN
+    271112  135570                  Piotr ya  ...   NaN     NaN
+    271113  135570                  Piotr ya  ...   NaN     NaN
+    271114  135571        Tomasz Ireneusz ya  ...   NaN     NaN
+    271115  135571        Tomasz Ireneusz ya  ...   NaN     NaN
+    <BLANKLINE>
+    [271116 rows x 16 columns]
     """
     for key, value in countries.items():
         olympic_df.loc[olympic_df["NOC"] == key, "region"] = value
@@ -98,6 +180,20 @@ def map_polity_region_dataset(country_dict: dict, polity_df: pd.DataFrame, count
     :param polity_df: Political dataset
     :param country_mapper: Dictionary of country code to region mapping in olympic dataset
     :return: Political dataset with country errors corrected.
+    >>> mapper = { 'BIH': 'BOSNIA AND HERZEGOVINA'}
+    >>> noc_df = pd.read_csv("noc_regions.csv")
+    >>> polity_df = prepare_polity_dataset("p5v2018.xls", noc_df)
+    >>> country_dict = {'BOSNIA': 'BIH'}
+    >>> polity_df = map_polity_region_dataset(country_dict, polity_df, mapper)
+    >>> polity_df[polity_df.country == 'BOSNIA']
+    ... # doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
+             scode country  year  ...  durable        alternate_region alternate_noc
+    1378   BOS  BOSNIA  1992  ...        0  BOSNIA AND HERZEGOVINA           BIH
+    ...
+    1404   BOS  BOSNIA  2018  ...        0  BOSNIA AND HERZEGOVINA           BIH
+    <BLANKLINE>
+    [27 rows x 8 columns]
+
     """
     polity_df.loc[polity_df['alternate_noc'].isnull(), "alternate_noc"] = polity_df['country'].map(
         country_dict)
@@ -116,6 +212,34 @@ def correct_team_medals_won(olympics_df: pd.DataFrame, sport_dict: dict) -> pd.D
     :param olympics_df: Olympic dataset
     :param sport_dict: Dictionary with key as the olympic sports and values indicating if its a team sport
     :return: Corrected Olympic dataset
+
+    >>> olympic_df, noc = prepare_olympic_dataset("athlete_events.csv", "noc_regions.csv")
+    >>> sport_dict = sport_dict = {'Rugby': True, \
+    'Alpinism':False, 'Speed Skating':False, 'Ice Hockey':True, 'Nordic Combined':False, \
+    'Rhythmic Gymnastics':False, 'Short Track Speed Skating':False, 'Baseball':True, \
+    'Softball':True, 'Tug-Of-War':True, 'Ski Jumping':False, 'Lacrosse':True, 'Curling':True, \
+       'Military Ski Patrol':True, 'Cricket':True, 'Croquet':False, 'Motorboating':True, \
+     'Basque Pelota':False, 'Aeronautics':False, 'Jeu De Paume':False, 'Racquets':False, \
+       'Roque':False, 'Athletics':False, 'Hockey':True, 'Football':True, 'Wrestling': False, 'Boxing':False, 'Judo':False, \
+     'Taekwondo':False, 'Shooting':False, 'Weightlifting':False, 'Swimming':True, 'Cycling':False, \
+   'Alpine Skiing':False, 'Gymnastics':False, 'Fencing':False, 'Handball':True, 'Tennis':True, \
+  'Volleyball':True, 'Rowing':True, 'Table Tennis':True, 'Trampolining':False, \
+ 'Cross Country Skiing':False, 'Badminton':False, 'Sailing':True, 'Bobsleigh':True, \
+ 'Archery':False, 'Canoeing':False, 'Snowboarding':False, 'Biathlon':False, 'Basketball':True, \
+      'Beach Volleyball':True, 'Figure Skating':False, 'Polo':True, 'Equestrianism':True, \
+  'Water Polo':True, 'Art Competitions':False, 'Modern Pentathlon':False, 'Diving':False, \
+     'Luge':False, 'Freestyle Skiing':False, 'Triathlon':False, 'Skeleton':False, \
+      'Synchronized Swimming':True, 'Golf':False, 'Rugby Sevens':True    }
+    >>> olympic_df = correct_team_medals_won(olympic_df, sport_dict)
+    >>> olympic_df[olympic_df.Sport == 'Rugby']
+    ... # doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
+                   region  Year  NOC  ... Season_Summer Season_Winter TeamGame
+    2671    AUSTRALIA  1908  ANZ  ...          15.0             0     True
+    ...
+    107476        USA  1924  USA  ...          19.0             0     True
+    <BLANKLINE>
+    [12 rows x 16 columns]
+
     """
     olympics_df['TeamGame'] = olympics_df.apply(
         lambda x: True if ((sport_dict[x.Sport]) & ('Single' not in x.Event) & ('One' not in x.Event) | (
