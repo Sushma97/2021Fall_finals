@@ -262,6 +262,11 @@ def get_polityshift_column(df: pd.DataFrame) -> pd.DataFrame:
     3 points in polity score in consecutive years, indicate a drastic shift in the country political system.
     :param df: Political dataset
     :return: Political dataset with the shift column added.
+    >>> noc_df = pd.read_csv("noc_regions.csv")
+    >>> polity_df = prepare_polity_dataset("p5v2018.xls", noc_df)
+    >>> polity_df = get_polityshift_column(polity_df)
+    >>> polity_df.shift != None
+    True
     """
     req_df = pd.DataFrame()
     for country in df.country.unique():
@@ -284,6 +289,11 @@ def plot_country_medal_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     :param start_year: The start year for the plot
     :param end_year: The end year for the plot
     :return:
+    >>> olympic_df, noc_df = prepare_olympic_dataset("athlete_events.csv", "noc_regions.csv")
+    >>> polity_df = prepare_polity_dataset("p5v2018.xls", noc_df)
+    >>> plot_country_medal_polity(olympic_df, polity_df, 'UK', 1929, 2010)
+    Finished plotting the figure for medals and polity score
+
     """
     agg_dict = {"Medal_Bronze": 'sum', 'Medal_Silver': 'sum', 'Medal_Gold': 'sum', 'polity2': np.mean}
     plot_df = modify_data_for_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict)
@@ -291,6 +301,7 @@ def plot_country_medal_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
                   ["Gold", "Year", "Medal_Gold"]]
     details = ["Medals Won vs Polity Score", "Year", "Medals Won"]
     plot_figure(input_list, plot_df, details)
+    print("Finished plotting the figure for medals and polity score")
 
 
 def modify_data_for_plot(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, country: str,
