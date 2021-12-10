@@ -295,12 +295,13 @@ def plot_country_medal_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     Finished plotting the figure for medals and polity score
 
     """
+    label = "number"
     agg_dict = {"Medal_Bronze": 'sum', 'Medal_Silver': 'sum', 'Medal_Gold': 'sum', 'polity2': np.mean}
     plot_df = modify_data_for_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict)
     input_list = [["Bronze", "Year", "Medal_Bronze"], ["Silver", "Year", "Medal_Silver"],
                   ["Gold", "Year", "Medal_Gold"]]
     details = ["Medals Won vs Polity Score", "Year", "Medals Won"]
-    plot_figure(input_list, plot_df, details)
+    plot_figure(input_list, plot_df, details, label)
     print("Finished plotting the figure for medals and polity score")
 
 
@@ -329,6 +330,23 @@ def modify_data_for_plot(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, coun
     return plot_df
 
 
+def plot_perc_of_medals_to_participant(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, country: str,
+                                       start_year: int, end_year: int):
+    label = "percentage"
+    agg_dict1 = {"Medal_Bronze": 'sum', "Medal_Silver": 'sum', "Medal_Gold": 'sum', "Name": 'sum', 'polity2': np.mean}
+    input_list1 = [["Bronze", "Year", "Bronze_perc"], ["Silver", "Year", "Silver_perc"],
+                   ["Gold", "Year", "Gold_perc"]]
+    details1 = ["Medals Won as a % of total participant vs Polity Score", "Year", "Medals Won"]
+    temp_df = olympic_df.copy(deep=True)
+    plot_df = modify_data_for_plot(temp_df, polity_df,country, start_year, end_year, agg_dict1)
+    plot_df["Bronze_perc"] = round((plot_df["Medal_Bronze"] / plot_df["Name"]), 2)
+    plot_df["Silver_perc"] = round((plot_df["Medal_Silver"] / plot_df["Name"]), 2)
+    plot_df["Gold_perc"] = round((plot_df["Medal_Gold"] / plot_df["Name"]), 2)
+    cols = ["Year", "Bronze_perc", "Silver_perc", "Gold_perc", "polity2"]
+    plot_df2 = plot_df[cols]
+    plot_figure(input_list1, plot_df2, details1, label)
+
+
 def plot_country_medal_to_participants_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, country: str,
                               start_year: int, end_year: int):
     """
@@ -343,6 +361,7 @@ def plot_country_medal_to_participants_ratio(olympic_df: pd.DataFrame, polity_df
     :param end_year: The end year for the plot
     :return:
     """
+    label = "number"
     agg_dict = {"TotalMedals": 'sum', "Name": 'sum','polity2': np.mean}
     temp_df = olympic_df.copy(deep=True)
     temp_df['TotalMedals'] = olympic_df.Medal_Bronze + olympic_df.Medal_Silver + olympic_df.Medal_Gold
@@ -350,7 +369,8 @@ def plot_country_medal_to_participants_ratio(olympic_df: pd.DataFrame, polity_df
     plot_df['medalParticipantRatio'] = round((plot_df.TotalMedals / plot_df.Name) * 100, 2)
     input_list = [["Medal to Participant Ratio", "Year", "medalParticipantRatio"]]
     details = ["Medal to Participant Ratio", "Year", "Medal to Participant Ratio"]
-    plot_figure(input_list, plot_df, details)
+
+    plot_figure(input_list, plot_df, details, label)
 
 
 def plot_country_age_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, country: str,
@@ -368,11 +388,12 @@ def plot_country_age_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, c
     :param end_year: The end year for the plot
     :return:
     """
+    label = "number"
     agg_dict = {"Age": 'mean', 'polity2': np.mean}
     plot_df = modify_data_for_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict)
     input_list = [["Average Age", "Year", "Age"]]
     details = ["Average Age vs Polity Score", "Year", "Average Age"]
-    plot_figure(input_list, plot_df, details)
+    plot_figure(input_list, plot_df, details, label)
 
 
 def plot_country_season_wise_participants(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, country: str,
@@ -390,12 +411,13 @@ def plot_country_season_wise_participants(olympic_df: pd.DataFrame, polity_df: p
     :param end_year: The end year for the plot
     :return:
     """
+    label = "number"
     agg_dict = {"Name": 'sum', 'polity2': np.mean,
                        'Season_Summer': 'sum', 'Season_Winter': 'sum'}
     plot_df = modify_data_for_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict)
     input_list = [["Summer Season", "Year", "Season_Summer"], ["Winter Season", "Year", "Season_Winter"]]
     details = ["Number of Participants vs Polity Score", "Year", "Number of Participants"]
-    plot_figure(input_list, plot_df, details)
+    plot_figure(input_list, plot_df, details, label)
 
 
 def country_male_female_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, country: str,
@@ -413,14 +435,15 @@ def country_male_female_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     :param end_year: The end year for the plot
     :return:
     """
+    label = "number"
     agg_dict = {"Sex_F": 'sum', 'Sex_M': 'sum', 'polity2': np.mean}
     plot_df = modify_data_for_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict)
     input_list = [["Female Participants", "Year", "Sex_F"], ["Male Participants", "Year", "Sex_M"]]
     details = ["Participating gender vs Polity Score", "Year", "Gender of participation"]
-    plot_figure(input_list, plot_df, details)
+    plot_figure(input_list, plot_df, details, label)
 
 
-def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list):
+def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list, axis: str):
     """
     This function plots the figure using plotly library. For the given values in input list,
     it adds a trace in the plot. The plot details like title, x axis and y axis names are fetched from the details list.
@@ -451,7 +474,10 @@ def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list):
 
         # Set x-axis title
         fig.update_xaxes(title_text=details[1])
-
+        if axis == "percentage":
+            fig.layout.yaxis.tickformat = ',.0%'
+        else:
+            pass
         # Set y-axes titles
         fig.update_yaxes(title_text="<b>"+details[2]+"</b>", secondary_y=False)
         fig.update_yaxes(title_text="<b>Polity Score</b>", secondary_y=True)
