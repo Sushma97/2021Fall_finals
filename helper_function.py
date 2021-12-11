@@ -1,7 +1,8 @@
 """
 Helper function is a module containing functions to assist the olympic data analysis performed in the jupyter notebook.
 """
-
+import time
+from multiprocessing import Process
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -321,6 +322,13 @@ def modify_data_for_plot(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, coun
     :param start_year: The start year for the plot
     :param end_year: The end year for the plot
     :return: The dataset with values to be plotted
+    >>> olympic_df, noc_df = prepare_olympic_dataset("athlete_events.csv", "noc_regions.csv")
+    >>> polity_df = prepare_polity_dataset("p5v2018.xls", noc_df)
+    >>> modify_data_for_plot(olympic_df, polity_df, 'KOREA', 1929, 2010, {})
+    ... # doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    ValueError
     """
     if country not in olympic_df.region.unique():
         print("The given string country does not exist in the list")
@@ -385,6 +393,10 @@ def plot_country_medal_to_participants_ratio(olympic_df: pd.DataFrame, polity_df
     :param start_year: The start year for the plot
     :param end_year: The end year for the plot
     :return:
+    >>> olympic_df, noc_df = prepare_olympic_dataset("athlete_events.csv", "noc_regions.csv")
+    >>> polity_df = prepare_polity_dataset("p5v2018.xls", noc_df)
+    >>> plot_country_medal_to_participants_ratio(olympic_df, polity_df, 'UK', 1929, 2010)
+    Finished plotting the figure for medals to participant ratio and polity score
     """
     if type(country) == str:
         country = [country]
@@ -402,6 +414,7 @@ def plot_country_medal_to_participants_ratio(olympic_df: pd.DataFrame, polity_df
         plot_subplot(input_list, plot_df1, plot_df2, details, country)
     else:
         plot_figure(input_list, plot_df1, details, label)
+    print("Finished plotting the figure for medals to participant ratio and polity score")
 
 
 def plot_country_age_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, country: str,
@@ -418,6 +431,10 @@ def plot_country_age_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, c
     :param start_year: The start year for the plot
     :param end_year: The end year for the plot
     :return:
+    >>> olympic_df, noc_df = prepare_olympic_dataset("athlete_events.csv", "noc_regions.csv")
+    >>> polity_df = prepare_polity_dataset("p5v2018.xls", noc_df)
+    >>> plot_country_age_polity(olympic_df, polity_df, 'UK', 1929, 2010)
+    Finished plotting the figure for participant age and polity score
     """
     if type(country) == str:
         country = [country]
@@ -431,6 +448,7 @@ def plot_country_age_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, c
         plot_subplot(input_list, plot_df1, plot_df2, details, country)
     else:
         plot_figure(input_list, plot_df1, details, label)
+    print("Finished plotting the figure for participant age and polity score")
 
 
 
@@ -448,6 +466,10 @@ def plot_country_season_wise_participants(olympic_df: pd.DataFrame, polity_df: p
     :param start_year: The start year for the plot
     :param end_year: The end year for the plot
     :return:
+    >>> olympic_df, noc_df = prepare_olympic_dataset("athlete_events.csv", "noc_regions.csv")
+    >>> polity_df = prepare_polity_dataset("p5v2018.xls", noc_df)
+    >>> plot_country_season_wise_participants(olympic_df, polity_df, 'UK', 1929, 2010)
+    Finished plotting the figure for season wise participants and polity score
     """
     if type(country) == str:
         country = [country]
@@ -462,6 +484,7 @@ def plot_country_season_wise_participants(olympic_df: pd.DataFrame, polity_df: p
         plot_subplot(input_list, plot_df1, plot_df2, details, country)
     else:
         plot_figure(input_list, plot_df1, details, label)
+    print("Finished plotting the figure for season wise participants and polity score")
 
 
 def country_male_female_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, country: str,
@@ -478,6 +501,10 @@ def country_male_female_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     :param start_year: The start year for the plot
     :param end_year: The end year for the plot
     :return:
+    >>> olympic_df, noc_df = prepare_olympic_dataset("athlete_events.csv", "noc_regions.csv")
+    >>> polity_df = prepare_polity_dataset("p5v2018.xls", noc_df)
+    >>> country_male_female_ratio(olympic_df, polity_df, 'UK', 1929, 2010)
+    Finished plotting the figure for male to female ratio and polity score
     """
     if type(country) == str:
         country = [country]
@@ -491,6 +518,7 @@ def country_male_female_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
         plot_subplot(input_list, plot_df1, plot_df2, details, country)
     else:
         plot_figure(input_list, plot_df1, details, label)
+    print("Finished plotting the figure for male to female ratio and polity score")
 
 
 def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list, axis: str):
@@ -501,6 +529,11 @@ def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list, axis: st
     :param plot_df: The dataframe containing values to be plotted
     :param details: List of plot details like title and so on.
     :return:
+    >>> input_list = [["Female Participants", "Year", "Sex_F"], ["Male Participants", "Year", "Sex_M"]]
+    >>> details = ["Participating gender vs Polity Score", "Year", "Gender of participation"]
+    >>> plot_df = pd.read_csv("noc_regions.csv")
+    >>> plot_figure(input_list, plot_df, details, 'percentage')
+    There was an error in plotting graph
     """
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     # color_list = ['#051c2c','#abe5f0', '#abe5f0', '#abe5f0']
@@ -589,3 +622,26 @@ def plot_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataFrame
         fig.show()
     except Exception:
         print("There was an error in plotting graph")
+
+
+
+def plot_graphs_for_country(olympic_df, polity_df, country, start_year, end_year):
+    current_time = time.time()
+    performParallel(plot_country_medal_polity(olympic_df, polity_df, country, start_year, end_year),
+    plot_country_medal_to_participants_ratio(olympic_df, polity_df, country, start_year, end_year),
+    plot_country_age_polity(olympic_df, polity_df, country, start_year, end_year),
+    country_male_female_ratio(olympic_df, polity_df, country, start_year, end_year),
+    plot_country_season_wise_participants(olympic_df, polity_df, country, start_year, end_year))
+    print("time taken is {}".format(time.time()-current_time))
+
+
+
+
+def performParallel(*functions):
+    process_list = []
+    for func in functions:
+        process = Process(target=func)
+        process.start()
+        process_list.append(process)
+    for process in process_list:
+        process.join()
