@@ -87,7 +87,7 @@ Reference:
 2. https://en.wikipedia.org/wiki/Division_of_Korea
 
 <p align="center">
-<img src="https://i.pinimg.com/736x/1d/a1/79/1da17947aa09c9389b9ac7aecc082ae0.jpg" width="150" height="100">
+<img src="https://i.pinimg.com/736x/1d/a1/79/1da17947aa09c9389b9ac7aecc082ae0.jpg" width="150" height="250">
 </p>
 
 ![newplot](https://user-images.githubusercontent.com/41410488/145706043-3ca73c2c-002c-4fa1-8f51-267bb41c9b29.png)
