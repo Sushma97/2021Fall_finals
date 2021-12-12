@@ -10,8 +10,6 @@ import warnings
 import constants
 warnings.filterwarnings('ignore')
 
-# TODO: LEGEND off, add constants file
-
 
 def prepare_olympic_dataset(olympic_file_name: str, region_file_name: str) -> tuple:
     """
@@ -297,16 +295,8 @@ def plot_country_medal_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
                   ["Gold", "Year", "Medal_Gold"]]
     details = ["Medals Won vs "+flag.upper(), "Year", "Medals Won"]
     plot_df1 = modify_data_for_plot(olympic_df, polity_df, country[0], start_year, end_year, agg_dict)
-    if len(country) == 2:
-        plot_df2 = modify_data_for_plot(olympic_df, polity_df, country[1], start_year, end_year, agg_dict)
-        if flag.upper() == constants.GDP:
-            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country, label)
-        elif flag.upper() == constants.POLITY_SCORE:
-            plot_subplot(input_list, plot_df1, plot_df2, details, country, label)
-        else:
-            print(constants.CORRECT_METRIC_ERROR)
-    else:
-        plot_figure(input_list, plot_df1, details, label, flag)
+    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list, plot_df1,
+                           details, label)
     print("=================================================================================================")
 
 
@@ -422,7 +412,7 @@ def plot_country_medal_to_participants_ratio(olympic_df: pd.DataFrame, polity_df
     temp_df['TotalMedals'] = olympic_df.Medal_Bronze + olympic_df.Medal_Silver + olympic_df.Medal_Gold
     plot_df1 = modify_data_for_plot(temp_df, polity_df, country[0], start_year, end_year, agg_dict)
     plot_df1['medalParticipantRatio'] = round((plot_df1.TotalMedals / plot_df1.Name) * 100, 2)
-    input_list = [["Medal to Participants Ratio", "Year", "medalParticipantsRatio"]]
+    input_list = [["Medal to Participants Ratio", "Year", "medalParticipantRatio"]]
     details = ["Medal to Participants Ratio", "Year", "Medal to Participants Ratio"]
     if len(country) == 2:
         plot_df2 = modify_data_for_plot(temp_df, polity_df, country[1], start_year, end_year, agg_dict)
@@ -469,16 +459,8 @@ def plot_country_age_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, c
     plot_df1 = modify_data_for_plot(olympic_df, polity_df, country[0], start_year, end_year, agg_dict)
     input_list = [["Average Age", "Year", "Age"]]
     details = ["Average Age vs "+flag.upper(), "Year", "Average Age"]
-    if len(country) == 2:
-        plot_df2 = modify_data_for_plot(olympic_df, polity_df, country[1], start_year, end_year, agg_dict)
-        if flag.upper() == constants.GDP:
-            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country, label)
-        elif flag.upper() == constants.POLITY_SCORE:
-            plot_subplot(input_list, plot_df1, plot_df2, details, country, label)
-        else:
-            print(constants.CORRECT_METRIC_ERROR)
-    else:
-        plot_figure(input_list, plot_df1, details, label, flag)
+    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list, plot_df1,
+                           details, label)
     print("=================================================================================================")
 
 
@@ -514,16 +496,8 @@ def plot_country_season_wise_participants(olympic_df: pd.DataFrame, polity_df: p
     plot_df1 = modify_data_for_plot(olympic_df, polity_df, country[0], start_year, end_year, agg_dict)
     input_list = [["Summer Season", "Year", "Season_Summer"], ["Winter Season", "Year", "Season_Winter"]]
     details = ["Number of Participants vs "+flag.upper(), "Year", "Number of Participants"]
-    if len(country) == 2:
-        plot_df2 = modify_data_for_plot(olympic_df, polity_df, country[1], start_year, end_year, agg_dict)
-        if flag.upper() == constants.GDP:
-            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country, label)
-        elif flag.upper() == constants.POLITY_SCORE:
-            plot_subplot(input_list, plot_df1, plot_df2, details, country, label)
-        else:
-            print(constants.CORRECT_METRIC_ERROR)
-    else:
-        plot_figure(input_list, plot_df1, details, label, flag)
+    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list, plot_df1,
+                           details, label)
     print("=================================================================================================")
 
 
@@ -558,20 +532,41 @@ def country_male_female_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     plot_df1 = modify_data_for_plot(olympic_df, polity_df, country[0], start_year, end_year, agg_dict)
     input_list = [["Female Participants", "Year", "Sex_F"], ["Male Participants", "Year", "Sex_M"]]
     details = ["Participating Gender vs "+flag.upper(), "Year", "Gender of participation"]
-    if len(country) > 2:
+    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list, plot_df1, details, label)
+    print("=================================================================================================")
+
+
+def configure_correct_plot(olympic_df, polity_df, countries, start_year, end_year, agg_dict, flag,
+                           input_list, plot_df1, details, label):
+    """
+    Based on the requirements decides if plot should be GDP or Polity and for multiple countries or single country
+
+    :param olympic_df: Olympics dataset
+    :param polity_df: Political dataset
+    :param countries: Country for which the results to be plotted
+    :param start_year: The start year for the plot
+    :param end_year: The end year for the plot
+    :param agg_dict: The values to aggregate the dataset on
+    :param flag: variable to indicate if it's polity score plot or GDP plot
+    :param input_list: List of values that need to be added as a trace in the graph
+    :param plot_df1: Dataset with plot details for the first country to be plotted
+    :param details: List of plot details like title and so on.
+    :param label: variable that indicates if y axis is percentage or number
+    :return:
+    """
+    if len(countries) > 2:
         print("YOU CAN GIVE ONLY TWO COUNTRIES AT A TIME")
         raise
-    if len(country) == 2:
-        plot_df2 = modify_data_for_plot(olympic_df, polity_df, country[1], start_year, end_year, agg_dict)
+    if len(countries) == 2:
+        plot_df2 = modify_data_for_plot(olympic_df, polity_df, countries[1], start_year, end_year, agg_dict)
         if flag.upper() == constants.GDP:
-            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country, label)
+            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, countries, label)
         elif flag.upper() == constants.POLITY_SCORE:
-            plot_subplot(input_list, plot_df1, plot_df2, details, country, label)
+            plot_subplot(input_list, plot_df1, plot_df2, details, countries, label)
         else:
             print(constants.CORRECT_METRIC_ERROR)
     else:
         plot_figure(input_list, plot_df1, details, label, flag)
-    print("=================================================================================================")
 
 
 def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list, axis: str, flag: str):
@@ -636,8 +631,8 @@ def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list, axis: st
         if flag == constants.GDP:
             fig['layout']['yaxis4']['title'] = '<b>GDP measure</b>'
         fig.show()
-    except Exception:
-        print("There was an error in plotting graph")
+    except Exception as e:
+        print("There was an error in plotting graph {}".format(e))
 
 
 def plot_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataFrame, details: list,
@@ -701,8 +696,8 @@ def plot_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataFrame
         fig.update_yaxes(title_text="<b>" + details[2] + "</b>", secondary_y=False)
         fig.update_yaxes(title_text="<b>Polity Score</b>", secondary_y=True)
         fig.show()
-    except Exception:
-        print("There was an error in plotting graph")
+    except Exception as e:
+        print("There was an error in plotting graph {}".format(e))
 
 
 def plot_graphs_for_country(olympic_df, polity_df, country, start_year, end_year, flag):
@@ -794,8 +789,8 @@ def plot_gdp_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataF
         fig.update_yaxes(title_text="<b>" + details[2] + "</b>", secondary_y=False)
         fig.update_yaxes(title_text="<b>GDP Measure</b>", secondary_y=True)
         fig.show()
-    except Exception:
-        print("There was an error in plotting graph")
+    except Exception as e:
+        print("There was an error in plotting graph {}".format(e))
 
 
 # This function was inspired from:

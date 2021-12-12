@@ -3,3 +3,4 @@ numpy
 plotly
 pytest
 xlrd
+openpyxl
