@@ -490,12 +490,10 @@ def plot_country_season_wise_participants(olympic_df: pd.DataFrame, polity_df: p
     label = constants.PERCENTAGE_LABEL
     agg_dict = {"Name": 'sum', 'polity2': np.mean,
                 'Season_Summer': 'sum', 'Season_Winter': 'sum', 'value': np.mean}
-    normalization_list = [["normalized_summer", "Season_Summer", "Name"],
-                          ["normalized_winter", "Season_Winter", "Name"]]
-    input_list = [["Summer Season", "Year", "normalized_summer"], ["Winter Season", "Year", "normalized_winter"]]
+    input_list = [["Summer Season", "Year", "Season_Summer"], ["Winter Season", "Year", "Season_Winter"]]
     details = ["Number of Participants vs "+flag.upper(), "Year", "Number of Participants"]
     configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list,
-                           details, label, normalization_list)
+                           details, label, None)
     print("=================================================================================================")
 
 
