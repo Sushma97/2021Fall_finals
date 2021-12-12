@@ -10,7 +10,7 @@ import warnings
 import constants
 warnings.filterwarnings('ignore')
 
-#TODO: LEGEND off
+# TODO: LEGEND off, add constants file
 
 
 def prepare_olympic_dataset(olympic_file_name: str, region_file_name: str) -> tuple:
@@ -132,8 +132,6 @@ def prepare_polity_dataset(polity_file_name: str, noc_df: pd.DataFrame) -> pd.Da
     polity_dff1['region_z'] = np.where(polity_dff1['region_x'].isnull(), polity_dff1['region_y'],
                                        polity_dff1['region_x'])
     polity_dff1['NOC_z'] = np.where(polity_dff1['NOC_x'].isnull(), polity_dff1['NOC_y'], polity_dff1['NOC_x'])
-    polity_dff1[(polity_dff1['region_x'] != polity_dff1['region_y'])
-                & (~polity_dff1['NOC_y'].isnull()) & (polity_dff1['region_x'].isnull())]
     cols = ["scode", "country", "year", "polity", "polity2", "durable", "region_z", "NOC_z"]  # Filter columns
     poltiy_dff2 = polity_dff1[cols]
     # Rename columns
@@ -297,7 +295,7 @@ def plot_country_medal_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     agg_dict = {"Medal_Bronze": 'sum', 'Medal_Silver': 'sum', 'Medal_Gold': 'sum', 'polity2': np.mean, 'value': np.mean}
     input_list = [["Bronze", "Year", "Medal_Bronze"], ["Silver", "Year", "Medal_Silver"],
                   ["Gold", "Year", "Medal_Gold"]]
-    details = ["Medals Won vs "+flag.lower().capitalize(), "Year", "Medals Won"]
+    details = ["Medals Won vs "+flag.upper(), "Year", "Medals Won"]
     plot_df1 = modify_data_for_plot(olympic_df, polity_df, country[0], start_year, end_year, agg_dict)
     if len(country) == 2:
         plot_df2 = modify_data_for_plot(olympic_df, polity_df, country[1], start_year, end_year, agg_dict)
@@ -367,7 +365,7 @@ def plot_perc_of_medals_to_participant(olympic_df: pd.DataFrame, polity_df: pd.D
                  'value': np.mean}
     input_list1 = [["Bronze", "Year", "Bronze_perc"], ["Silver", "Year", "Silver_perc"],
                    ["Gold", "Year", "Gold_perc"]]
-    details1 = ["Medals Won as a % of total participant vs "+flag.lower().capitalize(), "Year", "Medals Won"]
+    details1 = ["Medals Won as a % of Total Participants vs "+flag.upper(), "Year", "Medals Won"]
     temp_df = olympic_df.copy(deep=True)
     plot_df1 = modify_data_for_plot(temp_df, polity_df, country[0], start_year, end_year, agg_dict1)
     plot_df1["Bronze_perc"] = round((plot_df1["Medal_Bronze"] / plot_df1["Name"]), 2)
@@ -424,8 +422,8 @@ def plot_country_medal_to_participants_ratio(olympic_df: pd.DataFrame, polity_df
     temp_df['TotalMedals'] = olympic_df.Medal_Bronze + olympic_df.Medal_Silver + olympic_df.Medal_Gold
     plot_df1 = modify_data_for_plot(temp_df, polity_df, country[0], start_year, end_year, agg_dict)
     plot_df1['medalParticipantRatio'] = round((plot_df1.TotalMedals / plot_df1.Name) * 100, 2)
-    input_list = [["Medal to Participant Ratio", "Year", "medalParticipantRatio"]]
-    details = ["Medal to Participant Ratio", "Year", "Medal to Participant Ratio"]
+    input_list = [["Medal to Participants Ratio", "Year", "medalParticipantsRatio"]]
+    details = ["Medal to Participants Ratio", "Year", "Medal to Participants Ratio"]
     if len(country) == 2:
         plot_df2 = modify_data_for_plot(temp_df, polity_df, country[1], start_year, end_year, agg_dict)
         plot_df2['medalParticipantRatio'] = round((plot_df2.TotalMedals / plot_df2.Name) * 100, 2)
@@ -470,7 +468,7 @@ def plot_country_age_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, c
     agg_dict = {"Age": 'mean', 'polity2': np.mean, 'value': np.mean}
     plot_df1 = modify_data_for_plot(olympic_df, polity_df, country[0], start_year, end_year, agg_dict)
     input_list = [["Average Age", "Year", "Age"]]
-    details = ["Average Age vs "+flag.lower().capitalize(), "Year", "Average Age"]
+    details = ["Average Age vs "+flag.upper(), "Year", "Average Age"]
     if len(country) == 2:
         plot_df2 = modify_data_for_plot(olympic_df, polity_df, country[1], start_year, end_year, agg_dict)
         if flag.upper() == constants.GDP:
@@ -515,7 +513,7 @@ def plot_country_season_wise_participants(olympic_df: pd.DataFrame, polity_df: p
                 'Season_Summer': 'sum', 'Season_Winter': 'sum', 'value': np.mean}
     plot_df1 = modify_data_for_plot(olympic_df, polity_df, country[0], start_year, end_year, agg_dict)
     input_list = [["Summer Season", "Year", "Season_Summer"], ["Winter Season", "Year", "Season_Winter"]]
-    details = ["Number of Participants vs "+flag.lower().capitalize(), "Year", "Number of Participants"]
+    details = ["Number of Participants vs "+flag.upper(), "Year", "Number of Participants"]
     if len(country) == 2:
         plot_df2 = modify_data_for_plot(olympic_df, polity_df, country[1], start_year, end_year, agg_dict)
         if flag.upper() == constants.GDP:
@@ -559,7 +557,7 @@ def country_male_female_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     agg_dict = {"Sex_F": 'sum', 'Sex_M': 'sum', 'polity2': np.mean, 'value': np.mean}
     plot_df1 = modify_data_for_plot(olympic_df, polity_df, country[0], start_year, end_year, agg_dict)
     input_list = [["Female Participants", "Year", "Sex_F"], ["Male Participants", "Year", "Sex_M"]]
-    details = ["Participating gender vs "+flag.lower().capitalize(), "Year", "Gender of participation"]
+    details = ["Participating Gender vs "+flag.upper(), "Year", "Gender of participation"]
     if len(country) > 2:
         print("YOU CAN GIVE ONLY TWO COUNTRIES AT A TIME")
         raise
@@ -610,7 +608,7 @@ def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list, axis: st
                 fig.add_trace(
                     go.Bar(name=value[0],
                            x=plot_df[value[1]],
-                           y=plot_df[value[2]], marker_color=color_list[index]), row=1, col=2,
+                           y=plot_df[value[2]], marker_color=color_list[index], showlegend=False), row=1, col=2,
                     secondary_y=False
                 )
         fig.add_trace(
@@ -671,7 +669,7 @@ def plot_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataFrame
             fig.add_trace(
                 go.Bar(name=value[0],
                        x=plot_df2[value[1]],
-                       y=plot_df2[value[2]], marker_color=color_list[index]), row=1, col=2,
+                       y=plot_df2[value[2]], marker_color=color_list[index], showlegend=False), row=1, col=2,
 
                 secondary_y=False
             )
@@ -681,7 +679,7 @@ def plot_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataFrame
             secondary_y=True
         )
         fig.add_trace(
-            go.Line(x=plot_df2["Year"], y=plot_df2["polity2"], name="Polity", marker_color='#051c2c'),
+            go.Line(x=plot_df2["Year"], y=plot_df2["polity2"], name="Polity", marker_color='#051c2c', showlegend=False),
             row=1, col=2,
             secondary_y=True
         )
@@ -766,7 +764,7 @@ def plot_gdp_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataF
             fig.add_trace(
                 go.Bar(name=value[0],
                        x=plot_df2[value[1]],
-                       y=plot_df2[value[2]], marker_color=color_list[index]), row=1, col=2,
+                       y=plot_df2[value[2]], marker_color=color_list[index], showlegend=False), row=1, col=2,
 
                 secondary_y=False
             )
@@ -775,7 +773,7 @@ def plot_gdp_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataF
             row=1, col=1, secondary_y=True
         )
         fig.add_trace(
-            go.Line(x=plot_df2["Year"], y=plot_df2["value"], name="GDP x 10^9 USD", marker_color='#051c2c'),
+            go.Line(x=plot_df2["Year"], y=plot_df2["value"], name="GDP x 10^9 USD", marker_color='#051c2c', showlegend=False),
             row=1, col=2, secondary_y=True
         )
 
