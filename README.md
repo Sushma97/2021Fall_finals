@@ -102,6 +102,8 @@ Reference:
 
 We thought maybe we could incorporate GDP as well to see if both have an effect on the overall results in olympics. The dynamic function "plot_graphs_for_country" automatically adds a GDP subplot based on the parameters passed.
 
+_Note: Some countries do not have GDP value in the IMF dataset. This is the reason why countries like Afghanistan don't have a visible curve in the graph_
+
 **China** has had -7 score since 1980 but its GDP has been increasing ever since, we also notice an increase in medals to participant ratio and an overall increase in the metrics. Female participants ratio has been increasing with the 2012 and 2016 events noting higher female participation.
 
 ![newplot (5)](https://user-images.githubusercontent.com/41410488/145706112-f44ae59a-8a9b-4e4c-bf8b-223360c2a137.png)
