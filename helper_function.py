@@ -307,9 +307,9 @@ def plot_country_medal_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     if len(country) == 2:
         plot_df2 = modify_data_for_plot(olympic_df, polity_df, country[1], start_year, end_year, agg_dict)
         if flag == "GDP":
-            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country)
+            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country, label)
         else:
-            plot_subplot(input_list, plot_df1, plot_df2, details, country)
+            plot_subplot(input_list, plot_df1, plot_df2, details, country, label)
     else:
         plot_figure(input_list, plot_df1, details, label, flag)
     print("Finished plotting the figure for medals and polity score")
@@ -371,7 +371,7 @@ def plot_perc_of_medals_to_participant(olympic_df: pd.DataFrame, polity_df: pd.D
     plot_df1["Bronze_perc"] = round((plot_df1["Medal_Bronze"] / plot_df1["Name"]), 2)
     plot_df1["Silver_perc"] = round((plot_df1["Medal_Silver"] / plot_df1["Name"]), 2)
     plot_df1["Gold_perc"] = round((plot_df1["Medal_Gold"] / plot_df1["Name"]), 2)
-    cols = ["Year", "Bronze_perc", "Silver_perc", "Gold_perc", "polity2"]
+    cols = ["Year", "Bronze_perc", "Silver_perc", "Gold_perc", "polity2", "value"]
     plot_df3 = plot_df1[cols]
     if len(country) == 2:
         plot_df2 = modify_data_for_plot(olympic_df, polity_df, country[1], start_year, end_year, agg_dict1)
@@ -380,9 +380,9 @@ def plot_perc_of_medals_to_participant(olympic_df: pd.DataFrame, polity_df: pd.D
         plot_df2["Gold_perc"] = round((plot_df2["Medal_Gold"] / plot_df2["Name"]), 2)
         plot_df4 = plot_df2[cols]
         if flag == "GDP":
-            plot_gdp_subplot(input_list1, plot_df1, plot_df2, details1, country)
+            plot_gdp_subplot(input_list1, plot_df3, plot_df4, details1, country, label)
         else:
-            plot_subplot(input_list1, plot_df1, plot_df2, details1, country)
+            plot_subplot(input_list1, plot_df3, plot_df4, details1, country, label)
     else:
         plot_figure(input_list1, plot_df3, details1, label, flag)
 
@@ -419,9 +419,9 @@ def plot_country_medal_to_participants_ratio(olympic_df: pd.DataFrame, polity_df
         plot_df2 = modify_data_for_plot(temp_df, polity_df, country[1], start_year, end_year, agg_dict)
         plot_df2['medalParticipantRatio'] = round((plot_df2.TotalMedals / plot_df2.Name) * 100, 2)
         if flag == "GDP":
-            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country)
+            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country, label)
         else:
-            plot_subplot(input_list, plot_df1, plot_df2, details, country)
+            plot_subplot(input_list, plot_df1, plot_df2, details, country, label)
     else:
         plot_figure(input_list, plot_df1, details, label, flag)
 
@@ -455,9 +455,9 @@ def plot_country_age_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, c
     if len(country) == 2:
         plot_df2 = modify_data_for_plot(olympic_df, polity_df, country[1], start_year, end_year, agg_dict)
         if flag == "GDP":
-            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country)
+            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country, label)
         else:
-            plot_subplot(input_list, plot_df1, plot_df2, details, country)
+            plot_subplot(input_list, plot_df1, plot_df2, details, country, label)
     else:
         plot_figure(input_list, plot_df1, details, label, flag)
 
@@ -493,9 +493,9 @@ def plot_country_season_wise_participants(olympic_df: pd.DataFrame, polity_df: p
     if len(country) == 2:
         plot_df2 = modify_data_for_plot(olympic_df, polity_df, country[1], start_year, end_year, agg_dict)
         if flag == "GDP":
-            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country)
+            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country, label)
         else:
-            plot_subplot(input_list, plot_df1, plot_df2, details, country)
+            plot_subplot(input_list, plot_df1, plot_df2, details, country, label)
     else:
         plot_figure(input_list, plot_df1, details, label, flag)
 
@@ -529,9 +529,9 @@ def country_male_female_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     if len(country) == 2:
         plot_df2 = modify_data_for_plot(olympic_df, polity_df, country[1], start_year, end_year, agg_dict)
         if flag == "GDP":
-            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country)
+            plot_gdp_subplot(input_list, plot_df1, plot_df2, details, country, label)
         else:
-            plot_subplot(input_list, plot_df1, plot_df2, details, country)
+            plot_subplot(input_list, plot_df1, plot_df2, details, country, label)
     else:
         plot_figure(input_list, plot_df1, details, label, flag)
 
@@ -551,7 +551,11 @@ def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list, axis: st
     >>> plot_figure(input_list, plot_df, details, 'percentage')
     There was an error in plotting graph
     """
-    fig = make_subplots(rows=1, cols=2, specs=[[{"secondary_y": True}, {"secondary_y": True}]])
+    if flag == 'GDP':
+        fig = make_subplots(rows=1, cols=2, specs=[[{"secondary_y": True}, {"secondary_y": True}]])
+    else:
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+
     color_list = ['#ffa500','#3cb371', '#4169e1', '#abe5f0']
     try:
         for index, value in enumerate(input_list):
@@ -579,8 +583,8 @@ def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list, axis: st
             )
         # Add figure title
         fig.update_layout(
-            title_text=details[0], width=1050, height=400
-        )
+            title_text=details[0])
+
 
         # Set x-axis title
         fig.update_xaxes(title_text=details[1])
@@ -591,13 +595,14 @@ def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list, axis: st
         # Set y-axes titles
         fig.update_yaxes(title_text="<b>"+details[2]+"</b>", secondary_y=False)
         fig['layout']['yaxis2']['title']='<b>Polity</b>'
-        fig['layout']['yaxis4']['title']='<b>GDP measure</b>'
+        if flag == "GDP":
+            fig['layout']['yaxis4']['title']='<b>GDP measure</b>'
         fig.show()
     except Exception:
         print("There was an error in plotting graph")
 
 
-def plot_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataFrame, details: list, name_of_countries: list):
+def plot_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataFrame, details: list, name_of_countries: list, axis: str):
     """
     This function plots the two figure side by side for each country using plotly library. For the given values in input list,
     it adds a trace in the plot. The plot details like title, x axis and y axis names are fetched from the details list.
@@ -643,6 +648,11 @@ def plot_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataFrame
 
         # Set x-axis title
         fig.update_xaxes(title_text=details[1])
+        if axis == 'percentage':
+            fig['layout']['yaxis1']['tickformat'] = ',.0%'
+            fig['layout']['yaxis3']['tickformat'] = ',.0%'
+        else:
+            pass
 
         # Set y-axes titles
         fig.update_yaxes(title_text="<b>" + details[2] + "</b>", secondary_y=False)
@@ -664,7 +674,7 @@ def plot_graphs_for_country(olympic_df, polity_df, country, start_year, end_year
     print("time taken is {}".format(time.time()-current_time))
 
 
-def plot_gdp_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataFrame, details: list, name_of_countries: list):
+def plot_gdp_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataFrame, details: list, name_of_countries: list, axis: str):
     """
     This function plots the two figure side by side for each country using plotly library. For the given values in input list,
     it adds a trace in the plot. The plot details like title, x axis and y axis names are fetched from the details list.
@@ -708,6 +718,11 @@ def plot_gdp_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataF
 
         # Set x-axis title
         fig.update_xaxes(title_text=details[1])
+        if axis == 'percentage':
+            fig['layout']['yaxis1']['tickformat'] = ',.0%'
+            fig['layout']['yaxis3']['tickformat'] = ',.0%'
+        else:
+            pass
 
         # Set y-axes titles
         fig.update_yaxes(title_text="<b>" + details[2] + "</b>", secondary_y=False)
@@ -747,5 +762,6 @@ def map_polity_gdp(polity_df, mapper, gdp_string):
     polity_map = polity_df.merge(mapp, left_on=['country'], right_on=['country'], how='left')
     gdp_with_polity = polity_map.merge(df2, left_on=['Map', 'year'], right_on=['Country', 'variable'], how="left")
     gdp_with_polity['value'] = gdp_with_polity['value'].astype(float)
+    gdp_with_polity['value'] = gdp_with_polity['value']/1000
 
     return gdp_with_polity
