@@ -340,6 +340,17 @@ def plot_perc_of_medals_to_participant(olympic_df: pd.DataFrame, polity_df: pd.D
     The flag varaible controls if it's GDP plot along with polity plot.
     The plot can be for a single country or two countries can be compared together. If the country variable is a list,
     it plots subplot of % of medals won by total participant for the two countries in the list.
+
+    >>> olympic_df_test, noc_df = prepare_olympic_dataset("athlete_events.csv", "noc_regions.csv")
+    >>> polity_df_test = prepare_polity_dataset("p5v2018.xls", noc_df)
+    >>> polity_df_test = map_polity_gdp(polity_df_test, "Mapper_GDP.xlsx", "WEOOct2021all_new.xlsx")
+    >>> plot_perc_of_medals_to_participant(olympic_df_test, polity_df_test, ['UK', 'FRANCE'], 1929, 2010, 'GDP')
+    =================================================================================================
+    >>> plot_perc_of_medals_to_participant(olympic_df_test, polity_df_test, 'UK', 1929, 2010, 'Polity score')
+    =================================================================================================
+    >>> plot_perc_of_medals_to_participant(olympic_df_test, polity_df_test, 'UK', 1929, 2010, 'Polity score')
+    =================================================================================================
+
     :param olympic_df: Olympics dataset
     :param polity_df: Political dataset
     :param country: Country for which the results to be plotted
@@ -532,7 +543,8 @@ def country_male_female_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     plot_df1 = modify_data_for_plot(olympic_df, polity_df, country[0], start_year, end_year, agg_dict)
     input_list = [["Female Participants", "Year", "Sex_F"], ["Male Participants", "Year", "Sex_M"]]
     details = ["Participating Gender vs "+flag.upper(), "Year", "Gender of participation"]
-    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list, plot_df1, details, label)
+    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list, plot_df1,
+                           details, label)
     print("=================================================================================================")
 
 
@@ -583,7 +595,7 @@ def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list, axis: st
     >>> details_test = ["Participating gender vs Polity Score", "Year", "Gender of participation"]
     >>> plot_df_test = pd.read_csv("noc_regions.csv")
     >>> plot_figure(input_list_test, plot_df_test, details_test, 'percentage', 'GDP')
-    There was an error in plotting graph
+    There was an error in plotting graph 'Year'
     """
     if flag == constants.GDP:
         fig = make_subplots(rows=1, cols=2, specs=[[{"secondary_y": True}, {"secondary_y": True}]])
@@ -768,7 +780,8 @@ def plot_gdp_subplot(input_list: list, plot_df: pd.DataFrame, plot_df2: pd.DataF
             row=1, col=1, secondary_y=True
         )
         fig.add_trace(
-            go.Line(x=plot_df2["Year"], y=plot_df2["value"], name="GDP x 10^9 USD", marker_color='#051c2c', showlegend=False),
+            go.Line(x=plot_df2["Year"], y=plot_df2["value"], name="GDP x 10^9 USD", marker_color='#051c2c',
+                    showlegend=False),
             row=1, col=2, secondary_y=True
         )
 
