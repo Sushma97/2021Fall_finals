@@ -294,9 +294,8 @@ def plot_country_medal_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     input_list = [["Bronze", "Year", "Medal_Bronze"], ["Silver", "Year", "Medal_Silver"],
                   ["Gold", "Year", "Medal_Gold"]]
     details = ["Medals Won vs "+flag.upper(), "Year", "Medals Won"]
-    plot_df1 = modify_data_for_plot(olympic_df, polity_df, country[0], start_year, end_year, agg_dict)
-    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list, plot_df1,
-                           details, label)
+    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list,
+                           details, label, None)
     print("=================================================================================================")
 
 
@@ -367,27 +366,10 @@ def plot_perc_of_medals_to_participant(olympic_df: pd.DataFrame, polity_df: pd.D
     input_list1 = [["Bronze", "Year", "Bronze_perc"], ["Silver", "Year", "Silver_perc"],
                    ["Gold", "Year", "Gold_perc"]]
     details1 = ["Medals Won as a % of Total Participants vs "+flag.upper(), "Year", "Medals Won"]
-    temp_df = olympic_df.copy(deep=True)
-    plot_df1 = modify_data_for_plot(temp_df, polity_df, country[0], start_year, end_year, agg_dict1)
-    plot_df1["Bronze_perc"] = round((plot_df1["Medal_Bronze"] / plot_df1["Name"]), 2)
-    plot_df1["Silver_perc"] = round((plot_df1["Medal_Silver"] / plot_df1["Name"]), 2)
-    plot_df1["Gold_perc"] = round((plot_df1["Medal_Gold"] / plot_df1["Name"]), 2)
-    cols = ["Year", "Bronze_perc", "Silver_perc", "Gold_perc", "polity2", "value"]
-    plot_df3 = plot_df1[cols]
-    if len(country) == 2:
-        plot_df2 = modify_data_for_plot(olympic_df, polity_df, country[1], start_year, end_year, agg_dict1)
-        plot_df2["Bronze_perc"] = round((plot_df2["Medal_Bronze"] / plot_df2["Name"]), 2)
-        plot_df2["Silver_perc"] = round((plot_df2["Medal_Silver"] / plot_df2["Name"]), 2)
-        plot_df2["Gold_perc"] = round((plot_df2["Medal_Gold"] / plot_df2["Name"]), 2)
-        plot_df4 = plot_df2[cols]
-        if flag.upper() == constants.GDP:
-            plot_gdp_subplot(input_list1, plot_df3, plot_df4, details1, country, label)
-        elif flag.upper() == constants.POLITY_SCORE:
-            plot_subplot(input_list1, plot_df3, plot_df4, details1, country, label)
-        else:
-            print(constants.CORRECT_METRIC_ERROR)
-    else:
-        plot_figure(input_list1, plot_df3, details1, label, flag)
+    normalization_list = [["Bronze_perc", "Medal_Bronze", "Name"], ["Silver_perc", "Medal_Silver", "Name"],
+                          ["Gold_perc", "Medal_Gold", "Name"]]
+    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict1, flag,
+                           input_list1, details1, label, normalization_list)
     print("=================================================================================================")
 
 
@@ -467,11 +449,10 @@ def plot_country_age_polity(olympic_df: pd.DataFrame, polity_df: pd.DataFrame, c
         country = [country]
     label = constants.NUMBER_LABEL
     agg_dict = {"Age": 'mean', 'polity2': np.mean, 'value': np.mean}
-    plot_df1 = modify_data_for_plot(olympic_df, polity_df, country[0], start_year, end_year, agg_dict)
     input_list = [["Average Age", "Year", "Age"]]
     details = ["Average Age vs "+flag.upper(), "Year", "Average Age"]
-    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list, plot_df1,
-                           details, label)
+    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list,
+                           details, label, None)
     print("=================================================================================================")
 
 
@@ -501,14 +482,15 @@ def plot_country_season_wise_participants(olympic_df: pd.DataFrame, polity_df: p
     """
     if type(country) == str:
         country = [country]
-    label = constants.NUMBER_LABEL
+    label = constants.PERCENTAGE_LABEL
     agg_dict = {"Name": 'sum', 'polity2': np.mean,
                 'Season_Summer': 'sum', 'Season_Winter': 'sum', 'value': np.mean}
-    plot_df1 = modify_data_for_plot(olympic_df, polity_df, country[0], start_year, end_year, agg_dict)
-    input_list = [["Summer Season", "Year", "Season_Summer"], ["Winter Season", "Year", "Season_Winter"]]
+    normalization_list = [["normalized_summer", "Season_Summer", "Name"],
+                          ["normalized_winter", "Season_Winter", "Name"]]
+    input_list = [["Summer Season", "Year", "normalized_summer"], ["Winter Season", "Year", "normalized_winter"]]
     details = ["Number of Participants vs "+flag.upper(), "Year", "Number of Participants"]
-    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list, plot_df1,
-                           details, label)
+    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list,
+                           details, label, normalization_list)
     print("=================================================================================================")
 
 
@@ -538,18 +520,18 @@ def country_male_female_ratio(olympic_df: pd.DataFrame, polity_df: pd.DataFrame,
     """
     if type(country) == str:
         country = [country]
-    label = constants.NUMBER_LABEL
-    agg_dict = {"Sex_F": 'sum', 'Sex_M': 'sum', 'polity2': np.mean, 'value': np.mean}
-    plot_df1 = modify_data_for_plot(olympic_df, polity_df, country[0], start_year, end_year, agg_dict)
-    input_list = [["Female Participants", "Year", "Sex_F"], ["Male Participants", "Year", "Sex_M"]]
+    label = constants.PERCENTAGE_LABEL
+    agg_dict = {"Sex_M": 'sum', 'Sex_F': 'sum', "Name": 'sum', 'polity2': np.mean, 'value': np.mean}
+    normalization_dict = [["normalize_female", "Sex_F", "Name"], ["normalize_male", "Sex_M", "Name"]]
+    input_list = [["Female Participants", "Year", "normalize_female"], ["Male Participants", "Year", "normalize_male"]]
     details = ["Participating Gender vs "+flag.upper(), "Year", "Gender of participation"]
-    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag, input_list, plot_df1,
-                           details, label)
+    configure_correct_plot(olympic_df, polity_df, country, start_year, end_year, agg_dict, flag,
+                           input_list, details, label, normalization_dict)
     print("=================================================================================================")
 
 
 def configure_correct_plot(olympic_df, polity_df, countries, start_year, end_year, agg_dict, flag,
-                           input_list, plot_df1, details, label):
+                           input_list, details, label, normalized_list):
     """
     Based on the requirements decides if plot should be GDP or Polity and for multiple countries or single country
 
@@ -561,16 +543,21 @@ def configure_correct_plot(olympic_df, polity_df, countries, start_year, end_yea
     :param agg_dict: The values to aggregate the dataset on
     :param flag: variable to indicate if it's polity score plot or GDP plot
     :param input_list: List of values that need to be added as a trace in the graph
-    :param plot_df1: Dataset with plot details for the first country to be plotted
     :param details: List of plot details like title and so on.
     :param label: variable that indicates if y axis is percentage or number
+    :param normalized_list : Contains the list of column values to be normalized to plot
     :return:
     """
+    plot_df1 = modify_data_for_plot(olympic_df, polity_df, countries[0], start_year, end_year, agg_dict)
+    if normalized_list is not None:
+        plot_df1 = create_normalized_columns(plot_df1, normalized_list)
     if len(countries) > 2:
         print("YOU CAN GIVE ONLY TWO COUNTRIES AT A TIME")
         raise
     if len(countries) == 2:
         plot_df2 = modify_data_for_plot(olympic_df, polity_df, countries[1], start_year, end_year, agg_dict)
+        if normalized_list is not None:
+            plot_df2 = create_normalized_columns(plot_df2, normalized_list)
         if flag.upper() == constants.GDP:
             plot_gdp_subplot(input_list, plot_df1, plot_df2, details, countries, label)
         elif flag.upper() == constants.POLITY_SCORE:
@@ -579,6 +566,19 @@ def configure_correct_plot(olympic_df, polity_df, countries, start_year, end_yea
             print(constants.CORRECT_METRIC_ERROR)
     else:
         plot_figure(input_list, plot_df1, details, label, flag)
+
+
+def create_normalized_columns(plot_df: pd.DataFrame, normalized_list: list) -> pd.DataFrame:
+    """
+    Created plot dataframe with normalized column values
+
+    :param plot_df: Dataframe with metrics to be plotted
+    :param normalized_list: Contains column names to be normalized
+    :return: Dataframe with normalized metrics to be plotted
+    """
+    for val in normalized_list:
+        plot_df[val[0]] = round((plot_df[val[1]] / plot_df[val[2]]), 2)
+    return plot_df
 
 
 def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list, axis: str, flag: str):
@@ -634,6 +634,8 @@ def plot_figure(input_list: list, plot_df: pd.DataFrame, details: list, axis: st
         # Set x-axis title
         fig.update_xaxes(title_text=details[1])
         if axis == constants.PERCENTAGE_LABEL:
+            if flag == constants.GDP:
+                fig['layout']['yaxis3']['tickformat'] = ',.0%'
             fig['layout']['yaxis1']['tickformat'] = ',.0%'
         else:
             pass
