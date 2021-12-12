@@ -60,7 +60,7 @@ def prepare_olympic_dataset(olympic_file_name: str, region_file_name: str) -> tu
     File not found. Please enter the correct file name
     """
     try:
-
+        # Read the respective datasets
         olympic_df = pd.read_csv(olympic_file_name)
         noc_df = pd.read_csv(region_file_name)
     except FileNotFoundError:
@@ -68,8 +68,10 @@ def prepare_olympic_dataset(olympic_file_name: str, region_file_name: str) -> tu
         return
     olympic_df["Team"] = olympic_df["Team"].str.upper()
     noc_df["region"] = noc_df["region"].str.upper()
+    # Combine the datasets based on country code
     olympic_noc = olympic_df.merge(noc_df, left_on="NOC", right_on="NOC", how="inner")
     olympic_noc = pd.get_dummies(olympic_noc, columns=["Sex", "Medal", "Season"])
+    # aggregate the columns to form a meaningful dataset for analysis
     final_df = olympic_noc.groupby(['region', 'Year', 'NOC', 'City', 'Sport', 'Event'
                                     ]).agg({"Age": np.mean,
                                             "Name": 'count',
@@ -115,6 +117,7 @@ def prepare_polity_dataset(polity_file_name: str, noc_df: pd.DataFrame) -> pd.Da
     File not found. Please enter the correct file name
     """
     try:
+        # Read the excel file
         polity = pd.read_excel(polity_file_name, )
     except FileNotFoundError:
         print("File not found. Please enter the correct file name")
@@ -199,8 +202,9 @@ def map_polity_region_dataset(country_dict: dict, polity_df: pd.DataFrame, count
     """
     polity_df.loc[polity_df['alternate_noc'].isnull(), "alternate_noc"] = polity_df['country'].map(
         country_dict)
+    # Olympic dataset does not contain country named organge free state so we remove it
     polity_dff3 = polity_df[~(polity_df['country'] == 'ORANGE FREE STATE')]
-    polity_dff3 = polity_dff3[~(polity_dff3.polity2 == -66)]
+    polity_dff3 = polity_dff3[~(polity_dff3.polity2 == -66)]  # -66 indicated incomplete data, hence we remove it
     polity_dff3.loc[polity_dff3['alternate_region'].isnull(), "alternate_region"] = polity_dff3['alternate_noc'].map(
         country_mapper)
     return polity_dff3
@@ -244,6 +248,7 @@ def correct_team_medals_won(olympics_df: pd.DataFrame, sport_dict: dict) -> pd.D
     [12 rows x 16 columns]
 
     """
+    # Find out if the olympic game is a team game or not
     olympics_df['TeamGame'] = olympics_df.apply(
         lambda x: True if ((sport_dict[x.Sport]) & ('Single' not in x.Event) & ('One' not in x.Event) | (
                 'Relay' in x.Event)) else False, axis=1)
