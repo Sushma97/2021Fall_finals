@@ -487,7 +487,7 @@ def plot_country_season_wise_participants(olympic_df: pd.DataFrame, polity_df: p
     """
     if type(country) == str:
         country = [country]
-    label = constants.PERCENTAGE_LABEL
+    label = constants.NUMBER_LABEL
     agg_dict = {"Name": 'sum', 'polity2': np.mean,
                 'Season_Summer': 'sum', 'Season_Winter': 'sum', 'value': np.mean}
     input_list = [["Summer Season", "Year", "Season_Summer"], ["Winter Season", "Year", "Season_Winter"]]
